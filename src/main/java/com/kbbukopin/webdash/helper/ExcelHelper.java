@@ -102,9 +102,9 @@ public class ExcelHelper {
             project.setDescription(currentCell.getStringCellValue());
             break;
 
-          // case 3:
-          //   project.setPublished(currentCell.getBooleanCellValue());
-          //   break;
+          case 3:
+            project.setPublished(Boolean.parseBoolean(currentCell.getStringCellValue()));
+            break;
 
           default:
             break;
