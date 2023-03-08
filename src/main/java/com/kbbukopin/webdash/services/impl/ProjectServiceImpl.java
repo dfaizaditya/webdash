@@ -129,7 +129,6 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private Object getValue(Cell cell) {
-        System.out.println("asasa");
         switch (cell.getCellType()) {
             case STRING:
                 String value = cell.getStringCellValue();
