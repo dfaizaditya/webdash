@@ -1,14 +1,25 @@
 package com.kbbukopin.webdash.entity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "project")
 public class Project {
 
@@ -16,29 +27,30 @@ public class Project {
   @Column(name = "id")
   private long id;
 
-  @Column(name = "title")
-  private String title;
+  @Column(name = "unit")
+  private String unit;
 
-  @Column(name = "description")
-  private String description;
+  @Column(name = "category")
+  private String category;
 
-  @Column(name = "published")
-  private boolean published;
+  @Column(name = "name")
+  private String name;
 
-  public Project() {
+  @Column(name = "user_sponsor")
+  private String userSponsor;
 
-  }
+  @Column(name = "app_platform")
+  private String appPlatform;
 
-  public Project(String title, String description, boolean published) {
-    this.title = title;
-    this.description = description;
-    this.published = published;
-  }
+  @Column(name = "tech_platform")
+  private String techPlatform;
 
-  @Override
-  public String toString() {
-    return "Project [id=" + id + ", title=" + title + ", desc=" + description + ", published=" + published + "]";
-  }
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+  @Column(name = "start_date")
+  private LocalDate startDate;
 
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+  @Column(name = "due_date")
+  private LocalDate dueDate;
 }
 
