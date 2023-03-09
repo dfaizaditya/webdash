@@ -1,6 +1,7 @@
 package com.kbbukopin.webdash.services.impl;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -95,6 +96,15 @@ public class ProjectServiceImpl implements ProjectService {
                         Double due = Double.parseDouble(getValue(row.getCell(8)).toString());
                         LocalDate dueDate = LocalDate.parse(convertDateEvo(due), dateFormat);
 
+                        String type = String.valueOf(row.getCell(9));
+                        BigDecimal progress = BigDecimal.valueOf(Double.valueOf(getValue(row.getCell(10)).toString()));
+                        String status = String.valueOf(row.getCell(11));
+                        String info1 = String.valueOf(row.getCell(12));
+                        String changeType = String.valueOf(row.getCell(13));
+                        String rfc = String.valueOf(row.getCell(14));
+                        String documentation = String.valueOf(row.getCell(15));
+                        String info2 = String.valueOf(row.getCell(16));
+                        
                         Project project = Project.builder()
                                 .id(id)
                                 .unit(unit)
@@ -105,6 +115,14 @@ public class ProjectServiceImpl implements ProjectService {
                                 .techPlatform(techPlatform)
                                 .startDate(startDate)
                                 .dueDate(dueDate)
+                                .type(type)
+                                .progress(progress)
+                                .status(status)
+                                .info1(info1)
+                                .changeType(changeType)
+                                .rfc(rfc)
+                                .documentation(documentation)
+                                .info2(info2)
                                 .build();
 
                         projects.add(project);
