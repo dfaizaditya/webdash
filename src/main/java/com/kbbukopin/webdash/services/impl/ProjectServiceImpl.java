@@ -24,6 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.dto.ResponseHandler;
 import com.kbbukopin.webdash.entity.Project;
@@ -65,6 +68,13 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getProjectStat() {
+        ArrayList<String> data = new ArrayList<String>();
+         
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, data);
+    }
+
+    @Override
     public void importToDb(List<MultipartFile> multipleFiles) {
         if (!multipleFiles.isEmpty()) {
             List<Project> projects = new ArrayList<>();
@@ -91,7 +101,7 @@ public class ProjectServiceImpl implements ProjectService {
                         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
                         Double start = Double.parseDouble(getValue(row.getCell(7)).toString());
-                        LocalDate startDate = LocalDate.parse(convertDateEvo(start ),dateFormat);
+                        LocalDate startDate = LocalDate.parse(convertDateEvo(start), dateFormat);
 
                         Double due = Double.parseDouble(getValue(row.getCell(8)).toString());
                         LocalDate dueDate = LocalDate.parse(convertDateEvo(due), dateFormat);
@@ -104,7 +114,7 @@ public class ProjectServiceImpl implements ProjectService {
                         String rfc = String.valueOf(row.getCell(14));
                         String documentation = String.valueOf(row.getCell(15));
                         String info2 = String.valueOf(row.getCell(16));
-                        
+
                         Project project = Project.builder()
                                 .id(id)
                                 .unit(unit)
@@ -151,7 +161,7 @@ public class ProjectServiceImpl implements ProjectService {
             case STRING:
                 String value = cell.getStringCellValue();
                 System.out.println(value);
-                if (value.equals("N/A")){
+                if (value.equals("N/A")) {
                     return null;
                 }
                 return value;

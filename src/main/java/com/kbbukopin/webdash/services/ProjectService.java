@@ -15,4 +15,6 @@ public interface ProjectService {
     ResponseEntity<Object> updateProject(Long id, Project newProject);
 
     void importToDb(List<MultipartFile> multipleFiles);
+
+    ResponseEntity<Object> getProjectStat();
 }

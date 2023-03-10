@@ -43,6 +43,11 @@ public class ProjectController {
 		return projectService.updateProject(id, project);
 	}
 
+	@GetMapping("/{statistic}")
+	public ResponseEntity<Object> getProjectStat() {
+		return projectService.getProjectStat();
+	}
+
 	@PostMapping(path = "/upload")
     public  ResponseEntity<?>  importDataFromExcelToDb(@RequestPart(required = true)List<MultipartFile> files){
         String message = "";
