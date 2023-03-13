@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -14,6 +16,7 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.dto.ResponseHandler;
+import com.kbbukopin.webdash.dto.StatsHandler;
 import com.kbbukopin.webdash.entity.Project;
 import com.kbbukopin.webdash.exception.ApiException;
 import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
@@ -41,6 +44,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    public Gson gson = new Gson();
 
     @Override
     public PagedResponse<Project> getAllProjects(int page, int size) {
@@ -65,13 +70,51 @@ public class ProjectServiceImpl implements ProjectService {
         Project updatedProject = projectRepository.save(project);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
-    }
+    }   
 
     @Override
     public ResponseEntity<Object> getProjectStat() {
-        ArrayList<String> data = new ArrayList<String>();
-         
-        return ResponseHandler.generateResponse("Success", HttpStatus.OK, data);
+
+        List<String> clType = projectRepository.getColumnTypeList();
+        List<String> clComplete = projectRepository.getColumnCompleteList();
+        
+        List<Object> listOfType = new ArrayList<>();
+        List<Object> listOfComplete = new ArrayList<>();
+        
+        for (var entry : mapCount(clType).entrySet()) {
+            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+            Object myjson = gson.fromJson(inputString, Object.class);
+            listOfType.add(myjson);
+        }
+
+        for (var entry : mapCount(clComplete).entrySet()) {
+            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+            Object myjson = gson.fromJson(inputString, Object.class);
+            
+            listOfComplete.add(myjson);
+        }
+                
+        return StatsHandler.generateResponse("Success", HttpStatus.OK, listOfType, listOfComplete);
+    }
+
+    public Map<String, Long> mapCount(List<String> mylist) {
+        return mylist.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
+    }
+
+    public String formatJson(String id, String label, Double value) {
+        return "{\n" +
+                "\"id\" : \"" + id + "\",\n" +
+                "\"label\" : \"" + label + "\",\n" +
+                "\"value\" : \"" + value + "\"\n" +
+                "}";
+    }
+
+    public JsonObject createJson(String id, String label, Double value) {
+        JsonObject jsObj =  new JsonObject();
+        jsObj.addProperty("id", id);
+        jsObj.addProperty("label", id);
+        jsObj.addProperty("value", value);
+        return jsObj;
     }
 
     @Override
