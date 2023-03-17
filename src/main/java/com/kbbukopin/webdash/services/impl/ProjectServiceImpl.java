@@ -1,5 +1,6 @@
 package com.kbbukopin.webdash.services.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -35,6 +36,7 @@ import com.kbbukopin.webdash.dto.StatsHandler;
 import com.kbbukopin.webdash.entity.Project;
 import com.kbbukopin.webdash.exception.ApiException;
 import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
+import com.kbbukopin.webdash.helper.ExcelHelper;
 import com.kbbukopin.webdash.repository.ProjectRepository;
 import com.kbbukopin.webdash.services.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
@@ -70,16 +72,27 @@ public class ProjectServiceImpl implements ProjectService {
         Project updatedProject = projectRepository.save(project);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
-    }   
+    }
+    
+    @Override
+    public ResponseEntity<Object> deleteProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
+        projectRepository.deleteById(id);
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
+    }
 
     @Override
     public ResponseEntity<Object> getProjectStat() {
 
         List<String> clType = projectRepository.getColumnTypeList();
         List<String> clComplete = projectRepository.getColumnCompleteList();
+        List<String> clUnit = projectRepository.getColumnUnitList();
         
         List<Object> listOfType = new ArrayList<>();
         List<Object> listOfComplete = new ArrayList<>();
+        List<Object> listOfUnit = new ArrayList<>();
         
         for (var entry : mapCount(clType).entrySet()) {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
@@ -93,8 +106,16 @@ public class ProjectServiceImpl implements ProjectService {
             
             listOfComplete.add(myjson);
         }
+
+
+        for (var entry : mapCount(clUnit).entrySet()) {
+            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+            Object myjson = gson.fromJson(inputString, Object.class);
+            
+            listOfUnit.add(myjson);
+        }
                 
-        return StatsHandler.generateResponse("Success", HttpStatus.OK, listOfType, listOfComplete);
+        return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete, listOfUnit);
     }
 
     public Map<String, Long> mapCount(List<String> mylist) {
@@ -239,4 +260,15 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return numOfNonEmptyCells;
     }
+
+    public ByteArrayInputStream load() {
+        List<Project> projects = projectRepository.findAll();
+    
+        ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
+        return in;
+      }
+    
+      public List<Project> getAllProjects() {
+        return projectRepository.findAll();
+      }
 }

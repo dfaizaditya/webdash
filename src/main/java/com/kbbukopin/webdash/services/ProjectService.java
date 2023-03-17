@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.entity.Project;
+import java.io.ByteArrayInputStream;
 
 public interface ProjectService {
 
@@ -14,7 +15,11 @@ public interface ProjectService {
     
     ResponseEntity<Object> updateProject(Long id, Project newProject);
 
+    ResponseEntity<Object> deleteProject(Long id);
+
     void importToDb(List<MultipartFile> multipleFiles);
 
     ResponseEntity<Object> getProjectStat();
+
+    ByteArrayInputStream load();
 }

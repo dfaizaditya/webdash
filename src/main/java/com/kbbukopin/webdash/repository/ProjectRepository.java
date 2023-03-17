@@ -14,4 +14,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query(value="SELECT p.info1 FROM Project p", nativeQuery = true)
     List<String> getColumnCompleteList();
+
+    @Query(value="SELECT p.unit FROM Project p", nativeQuery = true)
+    List<String> getColumnUnitList();
 }
