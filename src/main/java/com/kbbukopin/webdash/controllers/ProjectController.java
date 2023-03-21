@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +43,11 @@ public class ProjectController {
 		return projectService.getAllProjects(page, size);
 	}
 
+	@GetMapping("/{id}")
+	public ResponseEntity<Object> getProjectById(@PathVariable(name = "id") Long id) {
+		return projectService.getProjectById(id);
+	}
+	
 	@PutMapping("/{id}")
 	public ResponseEntity<Object> updateProject(@PathVariable(name = "id") Long id,
 			@Valid @RequestBody Project project) {
@@ -53,7 +59,7 @@ public class ProjectController {
 		return projectService.deleteProject(id);
 	}
 
-	@GetMapping("/{statistic}")
+	@GetMapping("/statistics")
 	public ResponseEntity<Object> getProjectStat() {
 		return projectService.getProjectStat();
 	}

@@ -26,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
@@ -64,11 +65,32 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> updateProject(Long id, Project newProject) {
+    public ResponseEntity<Object> getProjectById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
+    }
+
+    @Override
+    public ResponseEntity<Object> updateProject(Long id, @RequestBody Project newProject) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
+        project.setUserSponsor(newProject.getUserSponsor());
+        project.setAppPlatform(newProject.getAppPlatform());
+        project.setTechPlatform(newProject.getTechPlatform());
+        project.setStartDate(newProject.getStartDate());
+        project.setDueDate(newProject.getDueDate());
+        project.setType(newProject.getType());
+        project.setProgress(newProject.getProgress());
+        project.setStatus(newProject.getStatus());
+        project.setInfo1(newProject.getInfo1());
+        project.setChangeType(newProject.getChangeType());
+        project.setRfc(newProject.getRfc());
+        project.setDocumentation(newProject.getDocumentation());
+        project.setInfo2(newProject.getInfo2());
+        
         Project updatedProject = projectRepository.save(project);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);

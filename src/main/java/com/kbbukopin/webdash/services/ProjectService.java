@@ -12,6 +12,8 @@ import java.io.ByteArrayInputStream;
 public interface ProjectService {
 
     PagedResponse<Project> getAllProjects(int page, int size);
+
+    ResponseEntity<Object> getProjectById(Long id);
     
     ResponseEntity<Object> updateProject(Long id, Project newProject);
 
