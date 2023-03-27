@@ -23,5 +23,7 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectStat();
 
+    ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category);
+
     ByteArrayInputStream load();
 }

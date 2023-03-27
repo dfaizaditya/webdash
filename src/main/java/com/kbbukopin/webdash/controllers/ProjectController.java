@@ -64,6 +64,17 @@ public class ProjectController {
 		return projectService.getProjectStat();
 	}
 
+	@GetMapping("/search")
+	public ResponseEntity<Object> getProjectsByFilter(
+		@RequestParam(required = false) String name, 
+        @RequestParam(required = false) String unit, 
+        @RequestParam(required = false) String category
+    	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
+		) 
+	 {
+		return projectService.getProjectsByFilter(name, unit, category);
+	}
+
 	@GetMapping("/download")
   	public ResponseEntity<Resource> getFile() {
     String filename = "projects.xlsx";

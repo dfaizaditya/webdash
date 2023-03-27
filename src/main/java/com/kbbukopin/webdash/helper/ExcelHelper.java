@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -78,6 +79,36 @@ public class ExcelHelper {
       return new ByteArrayInputStream(out.toByteArray());
     } catch (IOException e) {
       throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
+    }
+  }
+
+  public static String getCellValueAsString(Cell cell) {
+    if (cell == null) {
+        return null;
+    }
+    
+    String value = cell.getStringCellValue().trim();
+    if (value.equalsIgnoreCase("N/A")) {
+        return null;
+    } else {
+        return value;
+    }
+  }
+
+  public static Double getCellValueAsDouble(Cell cell) {
+    if (cell == null) {
+        return null;
+    }
+    
+    if (cell.getCellType() == CellType.NUMERIC) {
+        return cell.getNumericCellValue();
+    } else {
+        String value = cell.getStringCellValue().trim();
+        if (value.equalsIgnoreCase("N/A")) {
+            return null;
+        } else {
+            return Double.parseDouble(value);
+        }
     }
   }
 }

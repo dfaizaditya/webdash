@@ -72,6 +72,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category) {
+        List<Project> projects = projectRepository.searchProjects(name, unit, category);
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
+    }
+
+    @Override
     public ResponseEntity<Object> updateProject(Long id, @RequestBody Project newProject) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
@@ -244,13 +250,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     private Object getValue(Cell cell) {
         switch (cell.getCellType()) {
-            case STRING:
-                String value = cell.getStringCellValue();
-                System.out.println(value);
-                if (value.equals("N/A")) {
-                    return null;
-                }
-                return value;
+            case STRING:        
+                return ExcelHelper.getCellValueAsString(cell);
             case NUMERIC:
                 return String.valueOf((int) cell.getNumericCellValue());
             case BOOLEAN:
