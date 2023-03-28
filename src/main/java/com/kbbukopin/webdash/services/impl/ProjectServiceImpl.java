@@ -96,12 +96,12 @@ public class ProjectServiceImpl implements ProjectService {
         project.setRfc(newProject.getRfc());
         project.setDocumentation(newProject.getDocumentation());
         project.setInfo2(newProject.getInfo2());
-        
+
         Project updatedProject = projectRepository.save(project);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
     }
-    
+
     @Override
     public ResponseEntity<Object> deleteProject(Long id) {
         Project project = projectRepository.findById(id)
@@ -117,11 +117,11 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clType = projectRepository.getColumnTypeList();
         List<String> clComplete = projectRepository.getColumnCompleteList();
         List<String> clUnit = projectRepository.getColumnUnitList();
-        
+
         List<Object> listOfType = new ArrayList<>();
         List<Object> listOfComplete = new ArrayList<>();
         List<Object> listOfUnit = new ArrayList<>();
-        
+
         for (var entry : mapCount(clType).entrySet()) {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
@@ -131,19 +131,19 @@ public class ProjectServiceImpl implements ProjectService {
         for (var entry : mapCount(clComplete).entrySet()) {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
-            
+
             listOfComplete.add(myjson);
         }
-
 
         for (var entry : mapCount(clUnit).entrySet()) {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
-            
+
             listOfUnit.add(myjson);
         }
-                
-        return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete, listOfUnit);
+
+        return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete,
+                listOfUnit);
     }
 
     public Map<String, Long> mapCount(List<String> mylist) {
@@ -159,7 +159,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     public JsonObject createJson(String id, String label, Double value) {
-        JsonObject jsObj =  new JsonObject();
+        JsonObject jsObj = new JsonObject();
         jsObj.addProperty("id", id);
         jsObj.addProperty("label", id);
         jsObj.addProperty("value", value);
@@ -192,14 +192,13 @@ public class ProjectServiceImpl implements ProjectService {
 
                         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-                        Double start = Double.parseDouble(getValue(row.getCell(7)).toString());
-                        LocalDate startDate = LocalDate.parse(convertDateEvo(start), dateFormat);
+                        LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(7));
 
                         Double due = Double.parseDouble(getValue(row.getCell(8)).toString());
                         LocalDate dueDate = LocalDate.parse(convertDateEvo(due), dateFormat);
 
                         String type = String.valueOf(row.getCell(9));
-                        BigDecimal progress = BigDecimal.valueOf(Double.valueOf(getValue(row.getCell(10)).toString()));
+                        BigDecimal progress = new BigDecimal(row.getCell(10).toString());
                         String status = String.valueOf(row.getCell(11));
                         String info1 = String.valueOf(row.getCell(12));
                         String changeType = String.valueOf(row.getCell(13));
@@ -250,7 +249,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private Object getValue(Cell cell) {
         switch (cell.getCellType()) {
-            case STRING:        
+            case STRING:
                 return ExcelHelper.getCellValueAsString(cell);
             case NUMERIC:
                 return String.valueOf((int) cell.getNumericCellValue());
@@ -286,12 +285,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     public ByteArrayInputStream load() {
         List<Project> projects = projectRepository.findAll();
-    
+
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;
-      }
-    
-      public List<Project> getAllProjects() {
+    }
+
+    public List<Project> getAllProjects() {
         return projectRepository.findAll();
-      }
+    }
 }

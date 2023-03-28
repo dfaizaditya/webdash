@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -111,4 +113,20 @@ public class ExcelHelper {
         }
     }
   }
+
+  public static LocalDate parseLocalDate(Cell cell) {
+    if (cell.getCellType() == CellType.NUMERIC) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+      return cell.getLocalDateTimeCellValue().toLocalDate();
+    } else {
+      String value = cell.getStringCellValue().trim();
+      if (value.equals("") || value.equalsIgnoreCase("N/A")) {
+        return null;
+      } else {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return LocalDate.parse(value, formatter);
+      }
+    }
+  }
+  
 }
