@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -165,7 +166,6 @@ public class ProjectServiceImpl implements ProjectService {
         jsObj.addProperty("value", value);
         return jsObj;
     }
-
     @Override
     public void importToDb(List<MultipartFile> multipleFiles) {
         if (!multipleFiles.isEmpty()) {
@@ -174,14 +174,14 @@ public class ProjectServiceImpl implements ProjectService {
                 try {
                     XSSFWorkbook workbook = new XSSFWorkbook(multipartFile.getInputStream());
                     XSSFSheet sheet = workbook.getSheetAt(0);
-
+    
                     System.out.print(getNumberOfNonEmptyCells(sheet, 0));
                     // looping----------------------------------------------------------------
                     for (int rowIndex = 0; rowIndex < getNumberOfNonEmptyCells(sheet, 0) - 1; rowIndex++) {
-
+    
                         XSSFRow row = sheet.getRow(rowIndex + 1);
                         // datatoString skip header
-
+    
                         Long id = Long.parseLong(getValue(row.getCell(0)).toString());
                         String unit = String.valueOf(row.getCell(1));
                         String category = String.valueOf(row.getCell(2));
@@ -189,14 +189,14 @@ public class ProjectServiceImpl implements ProjectService {
                         String userSponsor = String.valueOf(row.getCell(4));
                         String appPlatform = String.valueOf(row.getCell(5));
                         String techPlatform = String.valueOf(row.getCell(6));
-
+    
                         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
+    
                         LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(7));
-
+    
                         Double due = Double.parseDouble(getValue(row.getCell(8)).toString());
                         LocalDate dueDate = LocalDate.parse(convertDateEvo(due), dateFormat);
-
+    
                         String type = String.valueOf(row.getCell(9));
                         BigDecimal progress = new BigDecimal(row.getCell(10).toString());
                         String status = String.valueOf(row.getCell(11));
@@ -205,7 +205,14 @@ public class ProjectServiceImpl implements ProjectService {
                         String rfc = String.valueOf(row.getCell(14));
                         String documentation = String.valueOf(row.getCell(15));
                         String info2 = String.valueOf(row.getCell(16));
-
+    
+                        // Check if any cells in the current row are merged
+                        if (isRowMerged(sheet, rowIndex + 1)) {
+                            // If any cells in the row are merged, adjust the index accordingly
+                            int mergedCols = getMergedColumns(sheet, rowIndex + 1);
+                            rowIndex += mergedCols - 1;
+                        }
+    
                         Project project = Project.builder()
                                 .id(id)
                                 .unit(unit)
@@ -225,22 +232,92 @@ public class ProjectServiceImpl implements ProjectService {
                                 .documentation(documentation)
                                 .info2(info2)
                                 .build();
-
+    
                         projects.add(project);
-
+    
                     }
-
+    
                 } catch (IOException e) {
                     throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
                 }
             });
-
+    
             if (!projects.isEmpty()) {
                 // save to database
                 projectRepository.saveAll(projects);
             }
         }
     }
+
+    private int getMergedColumns(XSSFSheet sheet, int rowNum) {
+        int mergedCols = 0;
+    
+        // Get the row that we are interested in
+        XSSFRow row = sheet.getRow(rowNum);
+    
+        if (row != null) {
+            for (int i = 0; i < row.getLastCellNum(); i++) {
+                XSSFCell cell = row.getCell(i);
+    
+                if (cell != null && isMerged(cell)) {
+                    // If the cell is merged, add the number of merged cells to the total
+                    mergedCols += getMergedRegion(sheet, cell.getRowIndex(), cell.getColumnIndex())[1] + 1;
+                } else {
+                    mergedCols++;
+                }
+            }
+        }
+    
+        return mergedCols;
+    }
+    
+    private boolean isMerged(XSSFCell cell) {
+        CellRangeAddress mergedRegion = null;
+    
+        // Check if the cell is part of a merged region
+        for (int i = 0; i < cell.getSheet().getNumMergedRegions(); i++) {
+            mergedRegion = cell.getSheet().getMergedRegion(i);
+    
+            if (mergedRegion.isInRange(cell.getRowIndex(), cell.getColumnIndex())) {
+                return true;
+            }
+        }
+    
+        return false;
+    }
+    
+    private int[] getMergedRegion(XSSFSheet sheet, int rowNum, int cellNum) {
+        int[] mergedRegion = new int[2];
+    
+        // Check if the cell is part of a merged region
+        for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
+            CellRangeAddress region = sheet.getMergedRegion(i);
+    
+            if (rowNum >= region.getFirstRow() && rowNum <= region.getLastRow()) {
+                if (cellNum >= region.getFirstColumn() && cellNum <= region.getLastColumn()) {
+                    mergedRegion[0] = region.getFirstColumn();
+                    mergedRegion[1] = region.getLastColumn();
+                    break;
+                }
+            }
+        }
+    
+        return mergedRegion;
+    }
+        
+    // Returns true if any cells in the given row are merged
+    private boolean isRowMerged(XSSFSheet sheet, int rowIndex) {
+        for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
+            CellRangeAddress range = sheet.getMergedRegion(i);
+            if (range.getFirstRow() <= rowIndex && range.getLastRow() >= rowIndex) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Returns the number of columns merged for the given row
+    
 
     public String convertDateEvo(Double date) {
         java.util.Date javaDate = org.apache.poi.ss.usermodel.DateUtil.getJavaDate(date);
