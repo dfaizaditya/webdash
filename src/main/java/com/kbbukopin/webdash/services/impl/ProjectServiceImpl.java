@@ -194,7 +194,17 @@ public class ProjectServiceImpl implements ProjectService {
                         LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(8));
 
                         String type = String.valueOf(row.getCell(9));
-                        BigDecimal progress = new BigDecimal(row.getCell(10).toString());
+                        // BigDecimal progress = new BigDecimal(row.getCell(10).toString());
+
+                        // handling data progress
+                        String tempProgress = String.valueOf(row.getCell(10));
+                        BigDecimal progress = null;
+                        if (tempProgress.matches("[[0-9.%]+]+")) {
+                            if (!(tempProgress.equalsIgnoreCase(".")) ||
+                                    !(tempProgress.equalsIgnoreCase("%"))) {
+                                progress = new BigDecimal(tempProgress);
+                            }
+                        }
                         String status = String.valueOf(row.getCell(11));
                         String info1 = String.valueOf(row.getCell(12));
                         String changeType = String.valueOf(row.getCell(13));
