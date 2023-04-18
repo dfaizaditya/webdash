@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -190,21 +190,22 @@ public class ProjectServiceImpl implements ProjectService {
                         String appPlatform = String.valueOf(row.getCell(5));
                         String techPlatform = String.valueOf(row.getCell(6));
 
+                        //parse data to localDate
                         LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(7));
                         LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(8));
 
                         String type = String.valueOf(row.getCell(9));
-                        // BigDecimal progress = new BigDecimal(row.getCell(10).toString());
 
-                        // handling data progress
+                        //handling data progress
                         String tempProgress = String.valueOf(row.getCell(10));
                         BigDecimal progress = null;
-                        if (tempProgress.matches("[[0-9.%]+]+")) {
-                            if (!(tempProgress.equalsIgnoreCase(".")) ||
-                                    !(tempProgress.equalsIgnoreCase("%"))) {
+                        if(tempProgress.matches("[[0-9.%]+]+")) {
+                            if(!(tempProgress.equalsIgnoreCase(".")) ||
+                                    !(tempProgress.equalsIgnoreCase("%"))){
                                 progress = new BigDecimal(tempProgress);
                             }
                         }
+
                         String status = String.valueOf(row.getCell(11));
                         String info1 = String.valueOf(row.getCell(12));
                         String changeType = String.valueOf(row.getCell(13));
