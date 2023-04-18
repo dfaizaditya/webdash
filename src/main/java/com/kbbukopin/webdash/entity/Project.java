@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "project")
-public class Project {
+public class Project extends DateAudit{
 
   @Id
   @Column(name = "id")
