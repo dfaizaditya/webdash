@@ -25,5 +25,7 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category);
 
+    ResponseEntity<Object> getEvidenceKpi();
+
     ByteArrayInputStream load();
 }

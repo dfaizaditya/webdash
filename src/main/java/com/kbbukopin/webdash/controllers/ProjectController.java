@@ -64,6 +64,11 @@ public class ProjectController {
 		return projectService.getProjectStat();
 	}
 
+	@GetMapping("/evidence")
+	public ResponseEntity<Object> getEvidenceKpi() {
+		return projectService.getEvidenceKpi();
+	}
+
 	@GetMapping("/search")
 	public ResponseEntity<Object> getProjectsByFilter(
 		@RequestParam(required = false) String name, 
