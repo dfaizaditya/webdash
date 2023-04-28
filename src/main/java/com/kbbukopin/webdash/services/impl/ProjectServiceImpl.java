@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -144,6 +142,100 @@ public class ProjectServiceImpl implements ProjectService {
 
         return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete,
                 listOfUnit);
+    }
+
+    @Override
+    public ResponseEntity<Object> getEvidenceKpi() {
+        String[] tipe = {"In House", "Insiden", "JoinDev", "Outsource"};
+        String[] status = {"Not Done", "Ahead", "On time", "Overdue"};
+
+        LinkedMap<String, String> category = new LinkedMap<>();
+
+        for (int i = 0; i < tipe.length; i++) {
+            if(tipe[i].equalsIgnoreCase("insiden")){
+                category.put(tipe[i], "Insiden");
+            } else {
+                category.put(tipe[i], "Proyek");
+            }
+        }
+
+        LinkedMap<String, Integer> data = new LinkedMap<>();
+        LinkedMap<String, Integer> total = new LinkedMap<>();
+
+        total.put("Total Project", 0);
+        total.put("Total Selesai", 0);
+        total.put("Selesai Cepat", 0);
+        total.put("Selesai Overdue", 0);
+        total.put("KPI", 0);
+
+        // #dataput
+        for (int i = 0; i < tipe.length; i++) {
+            int tempCount = 0, tempTotalPerTipe = 0;
+            for (int j = 0; j < status.length; j++) {
+                if (tipe[i].equalsIgnoreCase("Insiden")) {
+                    if (status[j].equalsIgnoreCase("Not Done")) {
+                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), "%");
+                        data.put(tipe[i] + " " + status[j], tempCount);
+                    } else {
+                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", "%");
+                        data.put(tipe[i] + " " + status[j], tempCount);
+                        total.put("Total Selesai", total.get("Total Selesai") + tempCount);
+                    }
+                } else {
+                    if (status[j].equalsIgnoreCase("Not Done")) {
+                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), tipe[i]);
+                        data.put(tipe[i] + " " + status[j], tempCount);
+                    } else {
+                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", tipe[i]);
+                        data.put(tipe[i] + " " + status[j], tempCount);
+                        total.put("Total Selesai", total.get("Total Selesai") + tempCount);
+                    }
+                }
+
+                if(status[j].equalsIgnoreCase("Ahead")) {
+                    total.put("Selesai Cepat", total.get("Selesai Cepat") + tempCount);
+                } else if (status[j].equalsIgnoreCase("Overdue")){
+                    total.put("Selesai Overdue", total.get("Selesai Overdue") + tempCount);
+                }
+
+                tempTotalPerTipe += tempCount;
+
+            }
+            data.put(tipe[i] + " Total", tempTotalPerTipe);
+            total.put("Total Project", total.get("Total Project") + tempTotalPerTipe);
+        }
+
+        // untuk #dataput -nya kurang lebih penginputan ke variabel data seperti ini
+//        for (int i = 0; i < tipe.length; i++) {
+//            if(tipe[i].equalsIgnoreCase("insiden")) {
+//                data.put(tipe[i] + " Not Done", projectRepository.countUnfinishedProject( category.get(tipe[i]),"%"));
+//                data.put(tipe[i] + " " + status[0], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[0] + "%","%"));
+//                data.put(tipe[i] + " " + status[1], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[1] + "%", "%"));
+//                data.put(tipe[i] + " " + status[2], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[2] + "%", "%"));
+//            } else {
+//                data.put(tipe[i] + " Not Done", projectRepository.countUnfinishedProject( category.get(tipe[i]),tipe[i]));
+//                data.put(tipe[i] + " " + status[0], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[0] + "%",tipe[i]));
+//                data.put(tipe[i] + " " + status[1], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[1] + "%", tipe[i]));
+//                data.put(tipe[i] + " " + status[2], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[2] + "%", tipe[i]));
+//            }
+//        }
+
+        double convertCalcToDouble = 1.0;
+        total.put("KPI", (int) Math.round(((total.get("Total Selesai")*convertCalcToDouble / total.get("Total Project")) +
+                        (total.get("Selesai Cepat")*convertCalcToDouble / total.get("Total Selesai")) -
+                        (total.get("Selesai Overdue")*convertCalcToDouble / total.get("Total Selesai")))*100)
+        );
+
+        // Line 230-232 hanya dummy dengan angka sesuai dokumen
+//        total.put("KPI", (int) Math.round(
+//                ((10*convertCalcToDouble / 25) + (3*convertCalcToDouble / 10) - (4*convertCalcToDouble / 10))*100)
+//        );
+
+        ArrayList<LinkedMap> projects = new ArrayList<LinkedMap>();
+        projects.add(data);
+        projects.add(total);
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
 
     public Map<String, Long> mapCount(List<String> mylist) {

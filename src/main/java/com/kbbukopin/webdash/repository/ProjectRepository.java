@@ -27,4 +27,20 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             @Param("unit") String unit,
             @Param("category") String category);
 
+    @Query("SELECT count(p.status) FROM Project p WHERE " +
+            "lower(p.status) LIKE '%rollout/solved%' AND " +
+            "p.category LIKE %:category% AND " +
+            "p.info1 LIKE %:info1% AND " +
+            "p.type LIKE %:type%")
+    Integer countFinishedProject(@Param("category") String category,
+                                    @Param("info1") String info1,
+                                    @Param("type") String type);
+
+    @Query("SELECT count(p.status) FROM Project p WHERE " +
+            "lower(p.status) NOT LIKE '%rollout/solved%' AND " +
+            "p.category LIKE %:category% AND " +
+            "p.type LIKE %:type%")
+    Integer countUnfinishedProject(@Param("category") String category,
+                                 @Param("type") String type);
+
 }
