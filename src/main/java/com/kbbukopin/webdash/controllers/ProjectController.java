@@ -1,5 +1,6 @@
 package com.kbbukopin.webdash.controllers;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -43,20 +44,24 @@ public class ProjectController {
 		return projectService.getAllProjects(page, size);
 	}
 
-	@GetMapping("/{id}")
-	public ResponseEntity<Object> getProjectById(@PathVariable(name = "id") Long id) {
-		return projectService.getProjectById(id);
+	@GetMapping("/{id}/{month}")
+	public ResponseEntity<Object> getProjectByIdandMonth(
+			@PathVariable(name = "id") Long id,
+			@PathVariable(name = "month") String month) {
+		return projectService.getProjectByIdAndMonth(id, month);
 	}
 	
-	@PutMapping("/{id}")
+	@PutMapping("/{id}/{month}")
 	public ResponseEntity<Object> updateProject(@PathVariable(name = "id") Long id,
-			@Valid @RequestBody Project project) {
-		return projectService.updateProject(id, project);
+												@PathVariable(name = "month") String month,
+												@Valid @RequestBody Project project) {
+		return projectService.updateProject(id, month, project);
 	}
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id) {
-		return projectService.deleteProject(id);
+	@DeleteMapping("/{id}/{month}")
+	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id,
+												@PathVariable(name = "month") String month) {
+		return projectService.deleteProject(id, month);
 	}
 
 	@GetMapping("/statistics")
@@ -65,8 +70,18 @@ public class ProjectController {
 	}
 
 	@GetMapping("/evidence")
-	public ResponseEntity<Object> getEvidenceKpi() {
-		return projectService.getEvidenceKpi();
+	public ResponseEntity<Object> getEvidenceKpi(
+			@RequestParam(required = false) String month) {
+		if(month == null || month.equalsIgnoreCase("")) {
+			Date date = new Date();
+			String[] daftarBulan = {
+					"Januari", "Februari", "Maret", "April",
+					"Mei", "Juni", "Juli", "Agustus",
+					"September", "Oktober", "November", "Desember"
+			};
+			month = daftarBulan[date.getMonth()];
+		}
+		return projectService.getEvidenceKpi(month);
 	}
 
 	@GetMapping("/search")
@@ -78,6 +93,12 @@ public class ProjectController {
 		) 
 	 {
 		return projectService.getProjectsByFilter(name, unit, category);
+	}
+
+	@GetMapping("/searchMonth")
+	public ResponseEntity<Object> getProjectsByFilterMonth(
+			@RequestParam(required = false) String month) {
+		return projectService.getProjectsByFilterMonth(month);
 	}
 
 	@GetMapping("/download")

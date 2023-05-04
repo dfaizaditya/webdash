@@ -40,6 +40,8 @@ import com.kbbukopin.webdash.repository.ProjectRepository;
 import com.kbbukopin.webdash.services.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
 
+import javax.transaction.Transactional;
+
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
@@ -63,8 +65,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectById(Long id) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
     }
@@ -76,14 +78,22 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> updateProject(Long id, @RequestBody Project newProject) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> getProjectsByFilterMonth(String month) {
+        List<Project> projects = projectRepository.searchProjectsByMonth(month);
+        System.out.println("ini month: " + month);
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
+    }
+
+    @Override
+    public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
         project.setUserSponsor(newProject.getUserSponsor());
         project.setAppPlatform(newProject.getAppPlatform());
         project.setTechPlatform(newProject.getTechPlatform());
+        project.setPic(newProject.getPic());
         project.setStartDate(newProject.getStartDate());
         project.setDueDate(newProject.getDueDate());
         project.setType(newProject.getType());
@@ -100,11 +110,12 @@ public class ProjectServiceImpl implements ProjectService {
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
     }
 
+    @Transactional
     @Override
-    public ResponseEntity<Object> deleteProject(Long id) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> deleteProject(Long id, String month) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
-        projectRepository.deleteById(id);
+        projectRepository.deleteByIdAndMonth(id, month);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
     }
@@ -145,7 +156,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getEvidenceKpi() {
+    public ResponseEntity<Object> getEvidenceKpi(String month) {
         String[] tipe = {"In House", "Insiden", "JoinDev", "Outsource"};
         String[] status = {"Not Done", "Ahead", "On time", "Overdue"};
 
@@ -174,19 +185,19 @@ public class ProjectServiceImpl implements ProjectService {
             for (int j = 0; j < status.length; j++) {
                 if (tipe[i].equalsIgnoreCase("Insiden")) {
                     if (status[j].equalsIgnoreCase("Not Done")) {
-                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), "%");
+                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), "%", month);
                         data.put(tipe[i] + " " + status[j], tempCount);
                     } else {
-                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", "%");
+                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", "%", month);
                         data.put(tipe[i] + " " + status[j], tempCount);
                         total.put("Total Selesai", total.get("Total Selesai") + tempCount);
                     }
                 } else {
                     if (status[j].equalsIgnoreCase("Not Done")) {
-                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), tipe[i]);
+                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), tipe[i], month);
                         data.put(tipe[i] + " " + status[j], tempCount);
                     } else {
-                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", tipe[i]);
+                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", tipe[i], month);
                         data.put(tipe[i] + " " + status[j], tempCount);
                         total.put("Total Selesai", total.get("Total Selesai") + tempCount);
                     }
@@ -275,23 +286,25 @@ public class ProjectServiceImpl implements ProjectService {
                         // datatoString skip header
 
                         Long id = Long.parseLong(getValue(row.getCell(0)).toString());
-                        String unit = String.valueOf(row.getCell(1));
-                        String category = String.valueOf(row.getCell(2));
-                        String name = String.valueOf(row.getCell(3));
-                        String userSponsor = String.valueOf(row.getCell(4));
-                        String appPlatform = String.valueOf(row.getCell(5));
-                        String techPlatform = String.valueOf(row.getCell(6));
+                        String month = String.valueOf(row.getCell(1));
+                        String unit = String.valueOf(row.getCell(2));
+                        String category = String.valueOf(row.getCell(3));
+                        String name = String.valueOf(row.getCell(4));
+                        String userSponsor = String.valueOf(row.getCell(5));
+                        String appPlatform = String.valueOf(row.getCell(6));
+                        String techPlatform = String.valueOf(row.getCell(7));
+                        String pic = String.valueOf(row.getCell(8));
 
                         //parse data to localDate
-                        LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(7));
-                        LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(8));
+                        LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(9));
+                        LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(10));
 
-                        String type = String.valueOf(row.getCell(9));
+                        String type = String.valueOf(row.getCell(11));
 
 //                        BigDecimal progress = new BigDecimal(row.getCell(10).toString());
 
                         //handling data progress
-                        String tempProgress = String.valueOf(row.getCell(10));
+                        String tempProgress = String.valueOf(row.getCell(12));
                         BigDecimal progress = null;
                         if(tempProgress.matches("[[0-9.%]+]+")) {
                             if(!(tempProgress.equalsIgnoreCase(".")) ||
@@ -300,21 +313,23 @@ public class ProjectServiceImpl implements ProjectService {
                             }
                         }
 
-                        String status = String.valueOf(row.getCell(11));
-                        String info1 = String.valueOf(row.getCell(12));
-                        String changeType = String.valueOf(row.getCell(13));
-                        String rfc = String.valueOf(row.getCell(14));
-                        String documentation = String.valueOf(row.getCell(15));
-                        String info2 = String.valueOf(row.getCell(16));
+                        String status = String.valueOf(row.getCell(13));
+                        String info1 = String.valueOf(row.getCell(14));
+                        String changeType = String.valueOf(row.getCell(15));
+                        String rfc = String.valueOf(row.getCell(16));
+                        String documentation = String.valueOf(row.getCell(17));
+                        String info2 = String.valueOf(row.getCell(18));
 
                         Project project = Project.builder()
                                 .id(id)
+                                .month(month)
                                 .unit(unit)
                                 .category(category)
                                 .name(name)
                                 .userSponsor(userSponsor)
                                 .appPlatform(appPlatform)
                                 .techPlatform(techPlatform)
+                                .pic(pic)
                                 .startDate(startDate)
                                 .dueDate(dueDate)
                                 .type(type)

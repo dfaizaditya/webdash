@@ -4,11 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -23,11 +19,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "project")
+@IdClass(ProjectId.class)
 public class Project extends DateAudit{
 
   @Id
   @Column(name = "id")
   private long id;
+
+  @Id
+  @Column(name = "month")
+  private String month;
 
   @Column(name = "unit")
   private String unit;
@@ -46,6 +47,9 @@ public class Project extends DateAudit{
 
   @Column(name = "tech_platform")
   private String techPlatform;
+
+  @Column(name = "pic")
+  private String pic;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
   @Column(name = "start_date")

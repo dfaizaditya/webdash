@@ -13,11 +13,11 @@ public interface ProjectService {
 
     PagedResponse<Project> getAllProjects(int page, int size);
 
-    ResponseEntity<Object> getProjectById(Long id);
+    ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month);
     
-    ResponseEntity<Object> updateProject(Long id, Project newProject);
+    ResponseEntity<Object> updateProject(Long id, String month, Project newProject);
 
-    ResponseEntity<Object> deleteProject(Long id);
+    ResponseEntity<Object> deleteProject(Long id, String month);
 
     void importToDb(List<MultipartFile> multipleFiles);
 
@@ -25,7 +25,9 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category);
 
-    ResponseEntity<Object> getEvidenceKpi();
+    ResponseEntity<Object> getProjectsByFilterMonth(String month);
+
+    ResponseEntity<Object> getEvidenceKpi(String month);
 
     ByteArrayInputStream load();
 }
