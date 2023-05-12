@@ -1,6 +1,5 @@
 package com.kbbukopin.webdash.controllers;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -12,17 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kbbukopin.webdash.dto.PagedResponse;
@@ -58,6 +47,13 @@ public class ProjectController {
 		return projectService.updateProject(id, month, project);
 	}
 
+	@PostMapping("/created")
+	public ResponseEntity<Object> createProject(@Valid @ModelAttribute Project project) {
+
+		return projectService.createProject(project);
+
+	}
+
 	@DeleteMapping("/{id}/{month}")
 	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month) {
@@ -65,40 +61,27 @@ public class ProjectController {
 	}
 
 	@GetMapping("/statistics")
-	public ResponseEntity<Object> getProjectStat() {
-		return projectService.getProjectStat();
+	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) String month) {
+		return projectService.getProjectStat(month);
 	}
 
 	@GetMapping("/evidence")
 	public ResponseEntity<Object> getEvidenceKpi(
-			@RequestParam(required = false) String month) {
-		if(month == null || month.equalsIgnoreCase("")) {
-			Date date = new Date();
-			String[] daftarBulan = {
-					"Januari", "Februari", "Maret", "April",
-					"Mei", "Juni", "Juli", "Agustus",
-					"September", "Oktober", "November", "Desember"
-			};
-			month = daftarBulan[date.getMonth()];
-		}
+			@RequestParam(required = false) String month)
+	{
 		return projectService.getEvidenceKpi(month);
 	}
 
 	@GetMapping("/search")
 	public ResponseEntity<Object> getProjectsByFilter(
-		@RequestParam(required = false) String name, 
+		@RequestParam(required = false) String month,
+		@RequestParam(required = false) String name,
         @RequestParam(required = false) String unit, 
         @RequestParam(required = false) String category
     	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
-		) 
-	 {
-		return projectService.getProjectsByFilter(name, unit, category);
-	}
-
-	@GetMapping("/searchMonth")
-	public ResponseEntity<Object> getProjectsByFilterMonth(
-			@RequestParam(required = false) String month) {
-		return projectService.getProjectsByFilterMonth(month);
+		)
+	{
+		return projectService.getProjectsByFilter(month, name, unit, category);
 	}
 
 	@GetMapping("/download")

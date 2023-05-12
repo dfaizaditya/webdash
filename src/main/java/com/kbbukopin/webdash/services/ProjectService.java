@@ -14,6 +14,8 @@ public interface ProjectService {
     PagedResponse<Project> getAllProjects(int page, int size);
 
     ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month);
+
+    ResponseEntity<Object> createProject(Project newProject);
     
     ResponseEntity<Object> updateProject(Long id, String month, Project newProject);
 
@@ -21,11 +23,9 @@ public interface ProjectService {
 
     void importToDb(List<MultipartFile> multipleFiles);
 
-    ResponseEntity<Object> getProjectStat();
+    ResponseEntity<Object> getProjectStat(String month);
 
-    ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category);
-
-    ResponseEntity<Object> getProjectsByFilterMonth(String month);
+    ResponseEntity<Object> getProjectsByFilter(String month, String name, String unit, String category);
 
     ResponseEntity<Object> getEvidenceKpi(String month);
 
