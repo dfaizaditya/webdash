@@ -58,7 +58,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
         "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", " +
         "COALESCE(SUM(CASE WHEN LOWER(status) NOT LIKE 'rollout/solved' OR (LOWER(status) LIKE 'rollout/solved' AND (LOWER(info1) LIKE 'finished%overdue%') OR LOWER(info1) LIKE LOWER('Finished%On Time%') OR LOWER(info1) LIKE LOWER('Finished%Ahead%')) THEN 1 ELSE 0 END), 0) as \"Total\" " +
         "FROM project WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND category = :category AND month = :month", nativeQuery = true)
-    LinkedMap<String,String> test(@Param("category") String category,
+    LinkedMap<String,String> getCountProject(@Param("category") String category,
                  @Param("type") String type,
                  @Param("month") String month);
 
@@ -71,6 +71,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "FROM project " +
             "WHERE month = :month) as a " +
             "GROUP BY a.total_project, a.total_selesai, a.selesai_cepat, a.selesai_overdue", nativeQuery = true)
-    LinkedMap<String, String> test1(@Param("month") String month);
+    LinkedMap<String, String> getTotalProject(@Param("month") String month);
 
 }
