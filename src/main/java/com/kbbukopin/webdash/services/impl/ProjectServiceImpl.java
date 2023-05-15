@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.kbbukopin.webdash.dto.KpiHandler;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -213,26 +214,24 @@ public class ProjectServiceImpl implements ProjectService {
 
         month = monthParamChangerIfNull(month);
 
-        String[] tipe = {"In House", "Insiden", "JoinDev", "Outsource"};
+        String[] types = {"In House", "Insiden", "JoinDev", "Outsource"};
         LinkedMap<String, String> category = new LinkedMap<>();
 
-        for (int i = 0; i < tipe.length; i++) {
-            if(tipe[i].equalsIgnoreCase("insiden")){
-                category.put(tipe[i], "Insiden");
+        for (String type : types) {
+            if (type.equalsIgnoreCase("insiden")) {
+                category.put(type, "Insiden");
             } else {
-                category.put(tipe[i], "Proyek");
+                category.put(type, "Proyek");
             }
         }
 
-        LinkedMap<String, Object> projects = new LinkedMap();
-
-        for (int i = 0; i < tipe.length; i++) {
-            projects.put(tipe[i], projectRepository.test(category.get(tipe[i]), tipe[i], month));
+        for (String type : types) {
+            KpiHandler.addDataResponse(type, projectRepository.getCountProject(category.get(type), type, month));
         }
 
-        projects.put("Total", projectRepository.test1(month));
+        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(month));
 
-        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
+        return KpiHandler.generateResponse("Success", HttpStatus.OK);
 
     }
 
