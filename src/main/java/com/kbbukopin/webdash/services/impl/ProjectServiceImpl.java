@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.LinkedMap;
@@ -40,6 +42,8 @@ import com.kbbukopin.webdash.repository.ProjectRepository;
 import com.kbbukopin.webdash.services.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
 
+import javax.transaction.Transactional;
+
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
@@ -63,27 +67,64 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectById(Long id) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(String name, String unit, String category) {
-        List<Project> projects = projectRepository.searchProjects(name, unit, category);
+    public ResponseEntity<Object> getProjectsByFilter(String month, String name, String unit, String category) {
+        List<Project> projects = projectRepository.searchProjects(month, name, unit, category);
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
 
     @Override
-    public ResponseEntity<Object> updateProject(Long id, @RequestBody Project newProject) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> createProject(@RequestBody Project newProject) {
+
+        if(!projectRepository.existsByIdAndMonth(newProject.getId(), monthWordFixer(newProject.getMonth()))){
+            Project project = Project.builder()
+                    .id(newProject.getId())
+                    .month(monthWordFixer(newProject.getMonth()))
+                    .unit(newProject.getUnit())
+                    .category(newProject.getCategory())
+                    .name(newProject.getName())
+                    .userSponsor(newProject.getUserSponsor())
+                    .appPlatform(newProject.getAppPlatform())
+                    .techPlatform(newProject.getTechPlatform())
+                    .pic(newProject.getPic())
+                    .startDate(newProject.getStartDate())
+                    .dueDate(newProject.getDueDate())
+                    .type(newProject.getType())
+                    .progress(newProject.getProgress())
+                    .status(newProject.getStatus())
+                    .info1(newProject.getInfo1())
+                    .changeType(newProject.getChangeType())
+                    .rfc(newProject.getRfc())
+                    .documentation(newProject.getDocumentation())
+                    .info2(newProject.getInfo2())
+                    .build();
+
+            projectRepository.save(project);
+
+            return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
+
+        } else {
+            return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
+        }
+
+    }
+
+    @Override
+    public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
         project.setUserSponsor(newProject.getUserSponsor());
         project.setAppPlatform(newProject.getAppPlatform());
         project.setTechPlatform(newProject.getTechPlatform());
+        project.setPic(newProject.getPic());
         project.setStartDate(newProject.getStartDate());
         project.setDueDate(newProject.getDueDate());
         project.setType(newProject.getType());
@@ -100,21 +141,24 @@ public class ProjectServiceImpl implements ProjectService {
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
     }
 
+    @Transactional
     @Override
-    public ResponseEntity<Object> deleteProject(Long id) {
-        Project project = projectRepository.findById(id)
+    public ResponseEntity<Object> deleteProject(Long id, String month) {
+        Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
-        projectRepository.deleteById(id);
+        projectRepository.deleteByIdAndMonth(id, month);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
     }
 
     @Override
-    public ResponseEntity<Object> getProjectStat() {
+    public ResponseEntity<Object> getProjectStat(String month) {
 
-        List<String> clType = projectRepository.getColumnTypeList();
-        List<String> clComplete = projectRepository.getColumnCompleteList();
-        List<String> clUnit = projectRepository.getColumnUnitList();
+        month = monthParamChangerIfNull(month);
+
+        List<String> clType = projectRepository.getColumnTypeList(month);
+        List<String> clComplete = projectRepository.getColumnCompleteList(month);
+        List<String> clUnit = projectRepository.getColumnUnitList(month);
 
         List<Object> listOfType = new ArrayList<>();
         List<Object> listOfComplete = new ArrayList<>();
@@ -144,100 +188,6 @@ public class ProjectServiceImpl implements ProjectService {
                 listOfUnit);
     }
 
-    @Override
-    public ResponseEntity<Object> getEvidenceKpi() {
-        String[] tipe = {"In House", "Insiden", "JoinDev", "Outsource"};
-        String[] status = {"Not Done", "Ahead", "On time", "Overdue"};
-
-        LinkedMap<String, String> category = new LinkedMap<>();
-
-        for (int i = 0; i < tipe.length; i++) {
-            if(tipe[i].equalsIgnoreCase("insiden")){
-                category.put(tipe[i], "Insiden");
-            } else {
-                category.put(tipe[i], "Proyek");
-            }
-        }
-
-        LinkedMap<String, Integer> data = new LinkedMap<>();
-        LinkedMap<String, Integer> total = new LinkedMap<>();
-
-        total.put("Total Project", 0);
-        total.put("Total Selesai", 0);
-        total.put("Selesai Cepat", 0);
-        total.put("Selesai Overdue", 0);
-        total.put("KPI", 0);
-
-        // #dataput
-        for (int i = 0; i < tipe.length; i++) {
-            int tempCount = 0, tempTotalPerTipe = 0;
-            for (int j = 0; j < status.length; j++) {
-                if (tipe[i].equalsIgnoreCase("Insiden")) {
-                    if (status[j].equalsIgnoreCase("Not Done")) {
-                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), "%");
-                        data.put(tipe[i] + " " + status[j], tempCount);
-                    } else {
-                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", "%");
-                        data.put(tipe[i] + " " + status[j], tempCount);
-                        total.put("Total Selesai", total.get("Total Selesai") + tempCount);
-                    }
-                } else {
-                    if (status[j].equalsIgnoreCase("Not Done")) {
-                        tempCount = projectRepository.countUnfinishedProject(category.get(tipe[i]), tipe[i]);
-                        data.put(tipe[i] + " " + status[j], tempCount);
-                    } else {
-                        tempCount = projectRepository.countFinishedProject(category.get(tipe[i]), "Finished%" + status[j] + "%", tipe[i]);
-                        data.put(tipe[i] + " " + status[j], tempCount);
-                        total.put("Total Selesai", total.get("Total Selesai") + tempCount);
-                    }
-                }
-
-                if(status[j].equalsIgnoreCase("Ahead")) {
-                    total.put("Selesai Cepat", total.get("Selesai Cepat") + tempCount);
-                } else if (status[j].equalsIgnoreCase("Overdue")){
-                    total.put("Selesai Overdue", total.get("Selesai Overdue") + tempCount);
-                }
-
-                tempTotalPerTipe += tempCount;
-
-            }
-            data.put(tipe[i] + " Total", tempTotalPerTipe);
-            total.put("Total Project", total.get("Total Project") + tempTotalPerTipe);
-        }
-
-        // untuk #dataput -nya kurang lebih penginputan ke variabel data seperti ini
-//        for (int i = 0; i < tipe.length; i++) {
-//            if(tipe[i].equalsIgnoreCase("insiden")) {
-//                data.put(tipe[i] + " Not Done", projectRepository.countUnfinishedProject( category.get(tipe[i]),"%"));
-//                data.put(tipe[i] + " " + status[0], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[0] + "%","%"));
-//                data.put(tipe[i] + " " + status[1], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[1] + "%", "%"));
-//                data.put(tipe[i] + " " + status[2], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[2] + "%", "%"));
-//            } else {
-//                data.put(tipe[i] + " Not Done", projectRepository.countUnfinishedProject( category.get(tipe[i]),tipe[i]));
-//                data.put(tipe[i] + " " + status[0], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[0] + "%",tipe[i]));
-//                data.put(tipe[i] + " " + status[1], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[1] + "%", tipe[i]));
-//                data.put(tipe[i] + " " + status[2], projectRepository.countFinishedProject( category.get(tipe[i]),"Finished%" + status[2] + "%", tipe[i]));
-//            }
-//        }
-
-        double convertCalcToDouble = 1.0;
-        total.put("KPI", (int) Math.round(((total.get("Total Selesai")*convertCalcToDouble / total.get("Total Project")) +
-                        (total.get("Selesai Cepat")*convertCalcToDouble / total.get("Total Selesai")) -
-                        (total.get("Selesai Overdue")*convertCalcToDouble / total.get("Total Selesai")))*100)
-        );
-
-        // Line 230-232 hanya dummy dengan angka sesuai dokumen
-//        total.put("KPI", (int) Math.round(
-//                ((10*convertCalcToDouble / 25) + (3*convertCalcToDouble / 10) - (4*convertCalcToDouble / 10))*100)
-//        );
-
-        ArrayList<LinkedMap> projects = new ArrayList<LinkedMap>();
-        projects.add(data);
-        projects.add(total);
-
-        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
-    }
-
     public Map<String, Long> mapCount(List<String> mylist) {
         return mylist.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
     }
@@ -259,6 +209,34 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getEvidenceKpi(String month) {
+
+        month = monthParamChangerIfNull(month);
+
+        String[] tipe = {"In House", "Insiden", "JoinDev", "Outsource"};
+        LinkedMap<String, String> category = new LinkedMap<>();
+
+        for (int i = 0; i < tipe.length; i++) {
+            if(tipe[i].equalsIgnoreCase("insiden")){
+                category.put(tipe[i], "Insiden");
+            } else {
+                category.put(tipe[i], "Proyek");
+            }
+        }
+
+        LinkedMap<String, Object> projects = new LinkedMap();
+
+        for (int i = 0; i < tipe.length; i++) {
+            projects.put(tipe[i], projectRepository.test(category.get(tipe[i]), tipe[i], month));
+        }
+
+        projects.put("Total", projectRepository.test1(month));
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
+
+    }
+
+    @Override
     public void importToDb(List<MultipartFile> multipleFiles) {
         if (!multipleFiles.isEmpty()) {
             List<Project> projects = new ArrayList<>();
@@ -275,21 +253,23 @@ public class ProjectServiceImpl implements ProjectService {
                         // datatoString skip header
 
                         Long id = Long.parseLong(getValue(row.getCell(0)).toString());
-                        String unit = String.valueOf(row.getCell(1));
-                        String category = String.valueOf(row.getCell(2));
-                        String name = String.valueOf(row.getCell(3));
-                        String userSponsor = String.valueOf(row.getCell(4));
-                        String appPlatform = String.valueOf(row.getCell(5));
-                        String techPlatform = String.valueOf(row.getCell(6));
+                        String month = monthWordFixer(String.valueOf(row.getCell(1)));
+                        String unit = String.valueOf(row.getCell(2));
+                        String category = String.valueOf(row.getCell(3));
+                        String name = String.valueOf(row.getCell(4));
+                        String userSponsor = String.valueOf(row.getCell(5));
+                        String appPlatform = String.valueOf(row.getCell(6));
+                        String techPlatform = String.valueOf(row.getCell(7));
+                        String pic = String.valueOf(row.getCell(8));
 
                         //parse data to localDate
-                        LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(7));
-                        LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(8));
+                        LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(9));
+                        LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(10));
 
-                        String type = String.valueOf(row.getCell(9));
+                        String type = String.valueOf(row.getCell(11));
 
                         //handling data progress
-                        String tempProgress = String.valueOf(row.getCell(10));
+                        String tempProgress = String.valueOf(row.getCell(12));
                         BigDecimal progress = null;
                         if(tempProgress.matches("[[0-9.%]+]+")) {
                             if(!(tempProgress.equalsIgnoreCase(".")) ||
@@ -298,21 +278,23 @@ public class ProjectServiceImpl implements ProjectService {
                             }
                         }
 
-                        String status = String.valueOf(row.getCell(11));
-                        String info1 = String.valueOf(row.getCell(12));
-                        String changeType = String.valueOf(row.getCell(13));
-                        String rfc = String.valueOf(row.getCell(14));
-                        String documentation = String.valueOf(row.getCell(15));
-                        String info2 = String.valueOf(row.getCell(16));
+                        String status = String.valueOf(row.getCell(13));
+                        String info1 = String.valueOf(row.getCell(14));
+                        String changeType = String.valueOf(row.getCell(15));
+                        String rfc = String.valueOf(row.getCell(16));
+                        String documentation = String.valueOf(row.getCell(17));
+                        String info2 = String.valueOf(row.getCell(18));
 
                         Project project = Project.builder()
                                 .id(id)
+                                .month(month)
                                 .unit(unit)
                                 .category(category)
                                 .name(name)
                                 .userSponsor(userSponsor)
                                 .appPlatform(appPlatform)
                                 .techPlatform(techPlatform)
+                                .pic(pic)
                                 .startDate(startDate)
                                 .dueDate(dueDate)
                                 .type(type)
@@ -339,6 +321,57 @@ public class ProjectServiceImpl implements ProjectService {
                 projectRepository.saveAll(projects);
             }
         }
+    }
+
+    private String monthParamChangerIfNull(String month) {
+        if(month == null || month.equalsIgnoreCase("")) {
+
+            String[] daftarBulan = {
+                    "Januari", "Februari", "Maret", "April",
+                    "Mei", "Juni", "Juli", "Agustus",
+                    "September", "Oktober", "November", "Desember"
+            };
+
+            Date date = new Date();
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            return daftarBulan[localDate.getMonthValue()-1];
+        } else {
+            return month;
+        }
+    }
+
+    //fungsi untuk standarisasi nilai month
+    private String monthWordFixer(String month) {
+
+        month = month.toLowerCase();
+        LinkedHashMap<String,String> bulanPattern = new LinkedHashMap<>();
+
+        bulanPattern.put("Januari", "^(j[a-z]*a[a-z]*n[a-z]*)$");
+        bulanPattern.put("Februari", "^(f[a-z]*b[a-z]*)$");
+        bulanPattern.put("Maret", "^(m[a-z]*r[a-z]*)$");
+        bulanPattern.put("April", "^(a[a-z]*p[a-z]*)$");
+        bulanPattern.put("Mei", "^(m[a-z]*[e[a-z]*i|a[a-z]*y])$");
+        bulanPattern.put("Juni", "^(j[a-z]*u[a-z]*n[a-z]*)$");
+        bulanPattern.put("Juli", "^(j[a-z]*u[a-z]*l[a-z]*)$");
+        bulanPattern.put("Agustus", "^(a[a-z]*g[a-z]*u[a-z]*)$");
+        bulanPattern.put("September", "^(s[a-z]*e[a-z]*p[a-z]*)$");
+        bulanPattern.put("Oktober", "^(o[a-z]*k[a-z]*t[a-z]*)$");
+        bulanPattern.put("November", "^(n[a-z]*v[a-z]*)$");
+        bulanPattern.put("Desember", "^(d[a-z]*s[a-z]*)$");
+
+        // mengambil set semua key dari bulanPattern ke dalam keys
+        Set<String> keys = bulanPattern.keySet();
+
+        // mencetak semua kunci
+        for (String key : keys) {
+            Pattern pattern = Pattern.compile(bulanPattern.get(key));
+            Matcher matcher = pattern.matcher(month);
+            if(matcher.matches()){
+                return key;
+            }
+        }
+        return "";
     }
 
     public String convertDateEvo(Double date) {
