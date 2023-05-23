@@ -1,6 +1,10 @@
 package com.kbbukopin.webdash.controllers;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -16,6 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.entity.Project;
+import com.kbbukopin.webdash.enums.CategoryType;
+import com.kbbukopin.webdash.enums.ProjectType;
+import com.kbbukopin.webdash.enums.UnitType;
 import com.kbbukopin.webdash.response.ResponseMessage;
 import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppConstants;
@@ -85,6 +92,31 @@ public class ProjectController {
 	{
 		return projectService.getProjectsByFilter(id_period, month, name, unit, category);
 	}
+
+	@GetMapping("/enums")
+    public Map<String, List<String>> getAllEnums() {
+        Map<String, List<String>> result = new HashMap<>();
+        
+        // Get all genre names from the Genre enum
+        List<String> unitType = Arrays.stream(UnitType.values())
+                .map(UnitType::getName)
+                .collect(Collectors.toList());
+        result.put("unitType", unitType);
+        
+        // Get all age restriction names from the AgeRestriction enum
+        List<String> categoryType = Arrays.stream(CategoryType.values())
+                .map(CategoryType::getName)
+                .collect(Collectors.toList());
+        result.put("categoryType", categoryType);
+
+		// Get all age restriction names from the AgeRestriction enum
+        List<String> projectType = Arrays.stream(ProjectType.values())
+                .map(ProjectType::getName)
+                .collect(Collectors.toList());
+        result.put("projectType", projectType);
+
+		return result;
+    }
 
 	@GetMapping("/download")
   	public ResponseEntity<Resource> getFile() {

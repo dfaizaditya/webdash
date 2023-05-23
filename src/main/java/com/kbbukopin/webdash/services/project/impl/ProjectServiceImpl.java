@@ -280,8 +280,6 @@ public class ProjectServiceImpl implements ProjectService {
 
                         String type = String.valueOf(row.getCell(11));
 
-//                        BigDecimal progress = new BigDecimal(row.getCell(10).toString());
-
                         //handling data progress
                         String tempProgress = String.valueOf(row.getCell(12));
                         BigDecimal progress = null;
