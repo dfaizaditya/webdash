@@ -55,10 +55,8 @@ public class ProjectController {
 	}
 
 	@PostMapping("/create")
-	public ResponseEntity<Object> createProject(@Valid @ModelAttribute Project project) {
-
+	public ResponseEntity<Object> createProject(@Valid @RequestBody  Project project) {
 		return projectService.createProject(project);
-
 	}
 
 	@DeleteMapping("/{id}/{month}")
