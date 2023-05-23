@@ -1,7 +1,8 @@
-package com.kbbukopin.webdash.services;
+package com.kbbukopin.webdash.services.project;
 
 import java.util.List;
 
+import com.kbbukopin.webdash.entity.Period;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,13 +22,13 @@ public interface ProjectService {
 
     ResponseEntity<Object> deleteProject(Long id, String month);
 
-    void importToDb(List<MultipartFile> multipleFiles);
+    void importToDb(Long id_project, List<MultipartFile> multipleFiles);
 
-    ResponseEntity<Object> getProjectStat(String month);
+    ResponseEntity<Object> getProjectStat(Long id_period, String month);
 
-    ResponseEntity<Object> getProjectsByFilter(String month, String name, String unit, String category);
+    ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String unit, String category);
 
-    ResponseEntity<Object> getEvidenceKpi(String month);
+    ResponseEntity<Object> getEvidenceKpi(Long id_period, String month);
 
     ByteArrayInputStream load();
 }

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.kbbukopin.webdash.entity.Project;;
+import com.kbbukopin.webdash.entity.Project;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
@@ -30,23 +30,29 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                             @Param("month") String month);
 
     @Query(value = "SELECT p.type FROM Project p WHERE " +
-            "p.month = :month", nativeQuery = true)
-    List<String> getColumnTypeList(@Param("month") String month);
+            "p.id_period = :id_period AND p.month = :month", nativeQuery = true)
+    List<String> getColumnTypeList(@Param("id_period") Long id_period,
+                                   @Param("month") String month);
 
     @Query(value = "SELECT p.info1 FROM Project p WHERE " +
-            "p.month = :month", nativeQuery = true)
-    List<String> getColumnCompleteList(@Param("month") String month);
+            "p.id_period = :id_period AND p.month = :month", nativeQuery = true)
+    List<String> getColumnCompleteList(@Param("id_period") Long id_period,
+                                       @Param("month") String month);
 
     @Query(value = "SELECT p.unit FROM Project p WHERE " +
-            "p.month = :month", nativeQuery = true)
-    List<String> getColumnUnitList(@Param("month") String month);
+            "p.id_period = :id_period AND p.month = :month", nativeQuery = true)
+    List<String> getColumnUnitList(@Param("id_period") Long id_period,
+                                   @Param("month") String month);
 
-    @Query("SELECT p FROM Project p WHERE " +
-            "(:month is null or p.month like %:month%) and " +
-            "(:name is null or lower(p.name) like %:name%) and " +
-            "(:unit is null or lower(p.unit) like %:unit%) and " +
-            "(:category is null or lower(p.category) like %:category%)")
-    List<Project> searchProjects(@Param("month") String month,
+    @Query(value = "SELECT p.* FROM Project p WHERE " +
+            "(:id_period is null or p.id_period = :id_period) and " +
+            "(:month is null or p.month like '%'||:month||'%') and " +
+            "(:name is null or lower(p.name) like '%'||:name||'%') and " +
+            "(:unit is null or lower(p.unit) like '%'||:unit||'%') and " +
+            "(:category is null or lower(p.category) like '%'||:category||'%')", nativeQuery = true)
+    List<Project> searchProjects(
+            @Param("id_period") Long id_period,
+            @Param("month") String month,
             @Param("name") String name,
             @Param("unit") String unit,
             @Param("category") String category);
@@ -57,10 +63,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
         "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) AS \"On Time\", " +
         "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", " +
         "COALESCE(SUM(CASE WHEN LOWER(status) NOT LIKE 'rollout/solved' OR (LOWER(status) LIKE 'rollout/solved' AND (LOWER(info1) LIKE 'finished%overdue%') OR LOWER(info1) LIKE LOWER('Finished%On Time%') OR LOWER(info1) LIKE LOWER('Finished%Ahead%')) THEN 1 ELSE 0 END), 0) as \"Total\" " +
-        "FROM project WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND category = :category AND month = :month", nativeQuery = true)
-    LinkedMap<String,String> getCountProject(@Param("category") String category,
-                 @Param("type") String type,
-                 @Param("month") String month);
+        "FROM project WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND category = :category AND month = :month AND id_period = :id_period", nativeQuery = true)
+    LinkedMap<String,String> getCountProject(@Param("id_period") Long id_period,
+                                             @Param("month") String month,
+                                             @Param("category") String category,
+                                             @Param("type") String type);
 
     @Query(value="SELECT a.total_project as \"Total Project\", a.total_selesai as \"Total Selesai\", a.selesai_cepat as \"Selesai Cepat\", a.selesai_overdue as \"Selesai Overdue\", CAST(SUM(CASE WHEN a.total_project = 0 OR a.total_selesai = 0 THEN 0 ELSE ((CAST(a.total_selesai AS FLOAT)/a.total_project)+(CAST(a.selesai_cepat AS FLOAT)/a.total_selesai)-(CAST(a.selesai_overdue AS FLOAT)/a.total_selesai))*100 END) AS NUMERIC(4,0)) as \"KPI\" " +
             "FROM (SELECT " +
@@ -69,8 +76,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS selesai_cepat, " +
             "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS selesai_overdue " +
             "FROM project " +
-            "WHERE month = :month) as a " +
+            "WHERE month = :month AND id_period = :id_period) as a " +
             "GROUP BY a.total_project, a.total_selesai, a.selesai_cepat, a.selesai_overdue", nativeQuery = true)
-    LinkedMap<String, String> getTotalProject(@Param("month") String month);
+    LinkedMap<String, String> getTotalProject(@Param("id_period") Long id_period,
+                                              @Param("month") String month);
 
 }

@@ -30,6 +30,10 @@ public class Project extends DateAudit{
   @Column(name = "month")
   private String month;
 
+  @ManyToOne
+  @JoinColumn(name = "id_period")
+  private Period period;
+
   @Column(name = "unit")
   private String unit;
 
