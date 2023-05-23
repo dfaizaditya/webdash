@@ -75,7 +75,7 @@ public class ProjectController {
 
 	@GetMapping("/search")
 	public ResponseEntity<Object> getProjectsByFilter(
-		@RequestParam(required = false) Long year,
+		@RequestParam(required = false) Long id_period,
 		@RequestParam(required = false) String month,
 		@RequestParam(required = false) String name,
         @RequestParam(required = false) String unit,
@@ -83,7 +83,7 @@ public class ProjectController {
     	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
 		)
 	{
-		return projectService.getProjectsByFilter(year, month, name, unit, category);
+		return projectService.getProjectsByFilter(id_period, month, name, unit, category);
 	}
 
 	@GetMapping("/download")

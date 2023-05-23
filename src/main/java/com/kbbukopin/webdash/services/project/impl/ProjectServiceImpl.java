@@ -77,12 +77,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String unit, String category) {
+    public ResponseEntity<Object> getProjectsByFilter(Long id_period, String month, String name, String unit, String category) {
 
-        Period period = new Period();
-        period = periodServiceImpl.getPeriodByYear(year);
-
-        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, unit, category);
+        List<Project> projects = projectRepository.searchProjects(id_period, month, name, unit, category);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
