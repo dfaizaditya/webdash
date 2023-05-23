@@ -24,7 +24,7 @@ import com.kbbukopin.webdash.enums.CategoryType;
 import com.kbbukopin.webdash.enums.ProjectType;
 import com.kbbukopin.webdash.enums.UnitType;
 import com.kbbukopin.webdash.response.ResponseMessage;
-import com.kbbukopin.webdash.services.ProjectService;
+import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppConstants;
 
 @RestController
@@ -54,7 +54,7 @@ public class ProjectController {
 		return projectService.updateProject(id, month, project);
 	}
 
-	@PostMapping("/created")
+	@PostMapping("/create")
 	public ResponseEntity<Object> createProject(@Valid @ModelAttribute Project project) {
 
 		return projectService.createProject(project);
@@ -68,27 +68,29 @@ public class ProjectController {
 	}
 
 	@GetMapping("/statistics")
-	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) String month) {
-		return projectService.getProjectStat(month);
+	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) Long id_period,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectStat(id_period, month);
 	}
 
 	@GetMapping("/evidence")
-	public ResponseEntity<Object> getEvidenceKpi(
-			@RequestParam(required = false) String month)
+	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long id_period,
+												 @RequestParam(required = false) String month)
 	{
-		return projectService.getEvidenceKpi(month);
+		return projectService.getEvidenceKpi(id_period, month);
 	}
 
 	@GetMapping("/search")
 	public ResponseEntity<Object> getProjectsByFilter(
+		@RequestParam(required = false) Long id_period,
 		@RequestParam(required = false) String month,
 		@RequestParam(required = false) String name,
-        @RequestParam(required = false) String unit, 
+        @RequestParam(required = false) String unit,
         @RequestParam(required = false) String category
     	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
 		)
 	{
-		return projectService.getProjectsByFilter(month, name, unit, category);
+		return projectService.getProjectsByFilter(id_period, month, name, unit, category);
 	}
 
 	@GetMapping("/enums")
@@ -128,9 +130,10 @@ public class ProjectController {
   }
 
 	@PostMapping(path = "/upload")
-    public  ResponseEntity<?>  importDataFromExcelToDb(@RequestPart(required = true)List<MultipartFile> files){
+    public  ResponseEntity<?>  importDataFromExcelToDb(@RequestParam(required = true) Long id_period,
+													   @RequestPart(required = true)List<MultipartFile> files){
         String message = "";
-		projectService.importToDb(files);
+		projectService.importToDb(id_period, files);
         message = "Uploaded the file successfully";
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }

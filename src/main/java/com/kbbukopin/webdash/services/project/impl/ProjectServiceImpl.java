@@ -1,4 +1,4 @@
-package com.kbbukopin.webdash.services.impl;
+package com.kbbukopin.webdash.services.project.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.kbbukopin.webdash.dto.KpiHandler;
+import com.kbbukopin.webdash.entity.Period;
+import com.kbbukopin.webdash.services.period.impl.PeriodServiceImpl;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -18,12 +20,10 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -36,11 +36,10 @@ import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.dto.ResponseHandler;
 import com.kbbukopin.webdash.dto.StatsHandler;
 import com.kbbukopin.webdash.entity.Project;
-import com.kbbukopin.webdash.exception.ApiException;
 import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
 import com.kbbukopin.webdash.helper.ExcelHelper;
 import com.kbbukopin.webdash.repository.ProjectRepository;
-import com.kbbukopin.webdash.services.ProjectService;
+import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
 
 import javax.transaction.Transactional;
@@ -50,6 +49,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private PeriodServiceImpl periodServiceImpl;
 
     public Gson gson = new Gson();
 
@@ -75,8 +77,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(String month, String name, String unit, String category) {
-        List<Project> projects = projectRepository.searchProjects(month, name, unit, category);
+    public ResponseEntity<Object> getProjectsByFilter(Long id_period, String month, String name, String unit, String category) {
+
+        List<Project> projects = projectRepository.searchProjects(id_period, month, name, unit, category);
+
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
 
@@ -87,6 +91,7 @@ public class ProjectServiceImpl implements ProjectService {
             Project project = Project.builder()
                     .id(newProject.getId())
                     .month(monthWordFixer(newProject.getMonth()))
+                    .period(newProject.getPeriod())
                     .unit(newProject.getUnit())
                     .category(newProject.getCategory())
                     .name(newProject.getName())
@@ -120,6 +125,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
+        project.setPeriod(newProject.getPeriod());
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
         project.setUserSponsor(newProject.getUserSponsor());
@@ -153,13 +159,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectStat(String month) {
+    public ResponseEntity<Object> getProjectStat(Long id_period, String month) {
 
         month = monthParamChangerIfNull(month);
+        id_period = idPeriodParamChangerIfNull(id_period);
 
-        List<String> clType = projectRepository.getColumnTypeList(month);
-        List<String> clComplete = projectRepository.getColumnCompleteList(month);
-        List<String> clUnit = projectRepository.getColumnUnitList(month);
+        List<String> clType = projectRepository.getColumnTypeList(id_period, month);
+        List<String> clComplete = projectRepository.getColumnCompleteList(id_period, month);
+        List<String> clUnit = projectRepository.getColumnUnitList(id_period, month);
 
         List<Object> listOfType = new ArrayList<>();
         List<Object> listOfComplete = new ArrayList<>();
@@ -210,9 +217,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getEvidenceKpi(String month) {
+    public ResponseEntity<Object> getEvidenceKpi(Long id_period, String month) {
 
+        id_period = idPeriodParamChangerIfNull(id_period);
         month = monthParamChangerIfNull(month);
+
+        System.out.println(id_period);
 
         String[] types = {"In House", "Insiden", "JoinDev", "Outsource"};
         LinkedMap<String, String> category = new LinkedMap<>();
@@ -226,17 +236,20 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         for (String type : types) {
-            KpiHandler.addDataResponse(type, projectRepository.getCountProject(category.get(type), type, month));
+            KpiHandler.addDataResponse(type, projectRepository.getCountProject(id_period, month, category.get(type), type));
         }
 
-        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(month));
+        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(id_period, month));
 
         return KpiHandler.generateResponse("Success", HttpStatus.OK);
 
     }
 
     @Override
-    public void importToDb(List<MultipartFile> multipleFiles) {
+    public void importToDb(Long id_project, List<MultipartFile> multipleFiles) {
+        Period period = new Period();
+        period.setId(id_project);
+
         if (!multipleFiles.isEmpty()) {
             List<Project> projects = new ArrayList<>();
             multipleFiles.forEach(multipartFile -> {
@@ -285,6 +298,7 @@ public class ProjectServiceImpl implements ProjectService {
                         String info2 = String.valueOf(row.getCell(18));
 
                         Project project = Project.builder()
+                                .period(period)
                                 .id(id)
                                 .month(month)
                                 .unit(unit)
@@ -319,6 +333,22 @@ public class ProjectServiceImpl implements ProjectService {
                 // save to database
                 projectRepository.saveAll(projects);
             }
+        }
+    }
+
+    private Long idPeriodParamChangerIfNull(Long id_period) {
+        if(id_period == null || id_period == 0) {
+
+            Date date = new Date();
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            long year = localDate.getYear();
+
+            Period period = periodServiceImpl.getPeriodByYear(year);
+
+            return period.getId();
+        } else {
+            return id_period;
         }
     }
 
