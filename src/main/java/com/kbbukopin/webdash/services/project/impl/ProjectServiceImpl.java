@@ -125,9 +125,11 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
+
         project.setPeriod(newProject.getPeriod());
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
+        project.setName(newProject.getName());
         project.setUserSponsor(newProject.getUserSponsor());
         project.setAppPlatform(newProject.getAppPlatform());
         project.setTechPlatform(newProject.getTechPlatform());
