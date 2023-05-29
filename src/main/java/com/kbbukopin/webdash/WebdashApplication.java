@@ -20,9 +20,9 @@ public class WebdashApplication {
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowedOrigins("http://localhost:5173")
-						.allowedOrigins("*")
 						.allowedMethods("GET", "POST", "PUT", "DELETE")
-						.allowedHeaders("*");
+						.allowedHeaders("*")
+						.allowCredentials(true);
 			}
 		};
 	}
