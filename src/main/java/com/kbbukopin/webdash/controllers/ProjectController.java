@@ -66,21 +66,21 @@ public class ProjectController {
 	}
 
 	@GetMapping("/statistics")
-	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) Long id_period,
+	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) Long year,
 												 @RequestParam(required = false) String month) {
-		return projectService.getProjectStat(id_period, month);
+		return projectService.getProjectStat(year, month);
 	}
 
 	@GetMapping("/evidence")
-	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long id_period,
+	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long year,
 												 @RequestParam(required = false) String month)
 	{
-		return projectService.getEvidenceKpi(id_period, month);
+		return projectService.getEvidenceKpi(year, month);
 	}
 
 	@GetMapping("/search")
 	public ResponseEntity<Object> getProjectsByFilter(
-		@RequestParam(required = false) Long id_period,
+		@RequestParam(required = false) Long year,
 		@RequestParam(required = false) String month,
 		@RequestParam(required = false) String name,
         @RequestParam(required = false) String unit,
@@ -88,7 +88,7 @@ public class ProjectController {
     	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
 		)
 	{
-		return projectService.getProjectsByFilter(id_period, month, name, unit, category);
+		return projectService.getProjectsByFilter(year, month, name, unit, category);
 	}
 
 	@GetMapping("/enums")
@@ -128,10 +128,10 @@ public class ProjectController {
   }
 
 	@PostMapping(path = "/upload")
-    public  ResponseEntity<?>  importDataFromExcelToDb(@RequestParam(required = true) Long id_period,
+    public  ResponseEntity<?>  importDataFromExcelToDb(@RequestParam(required = true) Long period_id,
 													   @RequestPart(required = true)List<MultipartFile> files){
         String message = "";
-		projectService.importToDb(id_period, files);
+		projectService.importToDb(period_id, files);
         message = "Uploaded the file successfully";
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }

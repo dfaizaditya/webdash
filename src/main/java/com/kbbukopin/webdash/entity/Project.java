@@ -2,7 +2,7 @@ package com.kbbukopin.webdash.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.*;
 
@@ -31,7 +31,7 @@ public class Project extends DateAudit{
   private String month;
 
   @ManyToOne
-  @JoinColumn(name = "id_period")
+  @JoinColumn(name = "period_id")
   private Period period;
 
   @Column(name = "unit")
@@ -43,17 +43,49 @@ public class Project extends DateAudit{
   @Column(name = "name")
   private String name;
 
-  @Column(name = "user_sponsor")
-  private String userSponsor;
+//  @Column(name = "user_sponsor")
+//  private String userSponsor;
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = "project_user_sponsor",
+          joinColumns = {
+                  @JoinColumn(name = "project_id", referencedColumnName = "id"),
+                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+          },
+          inverseJoinColumns = @JoinColumn(name = "user_sponsor_id"))
+  private List<UserSponsor> userSponsor;
 
-  @Column(name = "app_platform")
-  private String appPlatform;
+//  @Column(name = "app_platform")
+//  private String appPlatform;
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = "project_app_platform",
+          joinColumns = {
+                  @JoinColumn(name = "project_id", referencedColumnName = "id"),
+                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+          },
+          inverseJoinColumns = @JoinColumn(name = "app_platform_id"))
+  private List<AppPlatform> appPlatform;
 
-  @Column(name = "tech_platform")
-  private String techPlatform;
+//  @Column(name = "tech_platform")
+//  private String techPlatform;
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = "project_tech_platform",
+          joinColumns = {
+                  @JoinColumn(name = "project_id", referencedColumnName = "id"),
+                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+          },
+          inverseJoinColumns = @JoinColumn(name = "tech_platform_id"))
+  private List<TechPlatform> techPlatform;
 
-  @Column(name = "pic")
-  private String pic;
+//  @Column(name = "pic")
+//  private String pic;
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = "project_pic",
+          joinColumns = {
+                  @JoinColumn(name = "project_id", referencedColumnName = "id"),
+                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+          },
+          inverseJoinColumns = @JoinColumn(name = "pic_id"))
+  private List<Pic> pic;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
   @Column(name = "start_date")
@@ -86,5 +118,6 @@ public class Project extends DateAudit{
 
   @Column(name = "info2", columnDefinition="TEXT")
   private String info2;
+
 }
 

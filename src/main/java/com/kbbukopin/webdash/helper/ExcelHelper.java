@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.kbbukopin.webdash.entity.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,8 +19,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.kbbukopin.webdash.entity.Project;
 
 public class ExcelHelper {
   public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -58,23 +57,53 @@ public class ExcelHelper {
       for (Project project : projects) {
         Row row = sheet.createRow(rowIdx++);
 
+        // melakukan join string pada user sponsor
+        List<String> namesUserSponsor = new ArrayList<>();
+        for (UserSponsor userSponsor : project.getUserSponsor()) {
+          namesUserSponsor.add(userSponsor.getName());
+        }
+        String joinedNamesUserSponsor = String.join("\n", namesUserSponsor);
+
+        // melakukan join string pada app platform
+        List<String> namesAppPlatform = new ArrayList<>();
+        for (AppPlatform appPlatform : project.getAppPlatform()) {
+          namesAppPlatform.add(appPlatform.getName());
+        }
+        String joinedNamesAppPlatform = String.join("\n", namesAppPlatform);
+
+        // melakukan join string pada tech platform
+        List<String> namesTechPlatform = new ArrayList<>();
+        for (TechPlatform techPlatform : project.getTechPlatform()) {
+          namesTechPlatform.add(techPlatform.getName());
+        }
+        String joinedNamesTechPlatform = String.join("\n", namesTechPlatform);
+
+        // melakukan join string pada tech platform
+        List<String> namesPic = new ArrayList<>();
+        for (Pic pic : project.getPic()) {
+          namesPic.add(pic.getName());
+        }
+        String joinedNamesPic = String.join("\n", namesPic);
+
         row.createCell(0).setCellValue(project.getId());
-        row.createCell(1).setCellValue(project.getUnit());
-        row.createCell(2).setCellValue(project.getCategory());
-        row.createCell(3).setCellValue(project.getName());
-        row.createCell(4).setCellValue(project.getUserSponsor());
-        row.createCell(5).setCellValue(project.getAppPlatform());
-        row.createCell(6).setCellValue(project.getTechPlatform());
-        row.createCell(7).setCellValue(project.getStartDate());
-        row.createCell(8).setCellValue(project.getDueDate());
-        row.createCell(9).setCellValue(project.getType());
-        row.createCell(10).setCellValue(project.getProgress().doubleValue());
-        row.createCell(11).setCellValue(project.getStatus());
-        row.createCell(12).setCellValue(project.getInfo1());
-        row.createCell(13).setCellValue(project.getChangeType());
-        row.createCell(14).setCellValue(project.getRfc());
-        row.createCell(15).setCellValue(project.getDocumentation());
-        row.createCell(16).setCellValue(project.getInfo2());
+        row.createCell(1).setCellValue(project.getMonth());
+        row.createCell(2).setCellValue(project.getUnit());
+        row.createCell(3).setCellValue(project.getCategory());
+        row.createCell(4).setCellValue(project.getName());
+        row.createCell(5).setCellValue(joinedNamesUserSponsor);
+        row.createCell(6).setCellValue(joinedNamesAppPlatform);
+        row.createCell(7).setCellValue(joinedNamesTechPlatform);
+        row.createCell(8).setCellValue(joinedNamesPic);
+        row.createCell(9).setCellValue(project.getStartDate());
+        row.createCell(10).setCellValue(project.getDueDate());
+        row.createCell(11).setCellValue(project.getType());
+        row.createCell(12).setCellValue(project.getProgress().doubleValue());
+        row.createCell(13).setCellValue(project.getStatus());
+        row.createCell(14).setCellValue(project.getInfo1());
+        row.createCell(15).setCellValue(project.getChangeType());
+        row.createCell(16).setCellValue(project.getRfc());
+        row.createCell(17).setCellValue(project.getDocumentation());
+        row.createCell(18).setCellValue(project.getInfo2());
       }
 
       workbook.write(out);
