@@ -11,7 +11,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.kbbukopin.webdash.dto.KpiHandler;
-import com.kbbukopin.webdash.entity.Period;
+import com.kbbukopin.webdash.entity.*;
+import com.kbbukopin.webdash.repository.*;
 import com.kbbukopin.webdash.services.period.impl.PeriodServiceImpl;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.ss.usermodel.Cell;
@@ -35,10 +36,8 @@ import com.google.gson.JsonObject;
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.dto.ResponseHandler;
 import com.kbbukopin.webdash.dto.StatsHandler;
-import com.kbbukopin.webdash.entity.Project;
 import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
 import com.kbbukopin.webdash.helper.ExcelHelper;
-import com.kbbukopin.webdash.repository.ProjectRepository;
 import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
 
@@ -49,6 +48,18 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private UserSponsorRepository userSponsorRepository;
+
+    @Autowired
+    private AppPlatformRepository appPlatformRepository;
+
+    @Autowired
+    private TechPlatformRepository techPlatformRepository;
+
+    @Autowired
+    private PicRepository picRepository;
 
     @Autowired
     private PeriodServiceImpl periodServiceImpl;
@@ -77,9 +88,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(Long id_period, String month, String name, String unit, String category) {
+    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String unit, String category) {
 
-        List<Project> projects = projectRepository.searchProjects(id_period, month, name, unit, category);
+        Period period = this.getPeriodByYear(year);
+
+        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, unit, category);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
@@ -121,6 +134,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
@@ -147,6 +161,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project updatedProject = projectRepository.save(project);
 
+        userSponsorRepository.deleteUserSponsorNotExistOnPivot();
+        appPlatformRepository.deleteAppPlatformNotExistOnPivot();
+        techPlatformRepository.deleteTechPlatformNotExistOnPivot();
+        picRepository.deletePicNotExistOnPivot();
+
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedProject);
     }
 
@@ -155,20 +174,57 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> deleteProject(Long id, String month) {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
+
+        // variabel yang akan berisi data id user sponsor yang tidak terpakai
+        List<Long> idUserSponsors = new ArrayList<>();
+        for (UserSponsor userSponsor : project.getUserSponsor()) {
+            if (!userSponsorRepository.existProjectsByUserSponsorIdExceptItself(id, month,userSponsor.getId())) {
+                idUserSponsors.add(userSponsor.getId());
+            }
+        }
+
+        // variabel yang akan berisi data id app platform yang tidak terpakai
+        List<Long> idAppPlatforms = new ArrayList<>();
+        for (AppPlatform appPlatform : project.getAppPlatform()) {
+            if (!appPlatformRepository.existProjectsByAppPlatformIdExceptItself(id, month,appPlatform.getId())) {
+                idAppPlatforms.add(appPlatform.getId());
+            }
+        }
+
+        // variabel yang akan berisi data id tech platform yang tidak terpakai
+        List<Long> idTechPlatforms = new ArrayList<>();
+        for (TechPlatform techPlatform : project.getTechPlatform()) {
+            if (!techPlatformRepository.existProjectsByTechPlatformIdExceptItself(id, month,techPlatform.getId())) {
+                idTechPlatforms.add(techPlatform.getId());
+            }
+        }
+
+        // variabel yang akan berisi data id tech platform yang tidak terpakai
+        List<Long> idPic = new ArrayList<>();
+        for (Pic pic : project.getPic()) {
+            if (!picRepository.existProjectsByPicIdExceptItself(id, month, pic.getId())) {
+                idPic.add(pic.getId());
+            }
+        }
+
         projectRepository.deleteByIdAndMonth(id, month);
+        userSponsorRepository.deleteUserSponsorEntries(idUserSponsors);
+        appPlatformRepository.deleteAppPlatformEntries(idAppPlatforms);
+        techPlatformRepository.deleteTechPlatformEntries(idTechPlatforms);
+        picRepository.deletePicEntries(idPic);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
     }
 
     @Override
-    public ResponseEntity<Object> getProjectStat(Long id_period, String month) {
+    public ResponseEntity<Object> getProjectStat(Long year, String month) {
 
+        Period period = this.getPeriodByYear(year);
         month = monthParamChangerIfNull(month);
-        id_period = idPeriodParamChangerIfNull(id_period);
 
-        List<String> clType = projectRepository.getColumnTypeList(id_period, month);
-        List<String> clComplete = projectRepository.getColumnCompleteList(id_period, month);
-        List<String> clUnit = projectRepository.getColumnUnitList(id_period, month);
+        List<String> clType = projectRepository.getColumnTypeList(period.getId(), month);
+        List<String> clComplete = projectRepository.getColumnCompleteList(period.getId(), month);
+        List<String> clUnit = projectRepository.getColumnUnitList(period.getId(), month);
 
         List<Object> listOfType = new ArrayList<>();
         List<Object> listOfComplete = new ArrayList<>();
@@ -219,12 +275,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getEvidenceKpi(Long id_period, String month) {
+    public ResponseEntity<Object> getEvidenceKpi(Long year, String month) {
 
-        id_period = idPeriodParamChangerIfNull(id_period);
+        Period period = this.getPeriodByYear(year);
         month = monthParamChangerIfNull(month);
-
-        System.out.println(id_period);
 
         String[] types = {"In House", "Insiden", "JoinDev", "Outsource"};
         LinkedMap<String, String> category = new LinkedMap<>();
@@ -238,19 +292,19 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         for (String type : types) {
-            KpiHandler.addDataResponse(type, projectRepository.getCountProject(id_period, month, category.get(type), type));
+            KpiHandler.addDataResponse(type, projectRepository.getCountProject(period.getId(), month, category.get(type), type));
         }
 
-        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(id_period, month));
+        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), month));
 
         return KpiHandler.generateResponse("Success", HttpStatus.OK);
 
     }
 
     @Override
-    public void importToDb(Long id_project, List<MultipartFile> multipleFiles) {
+    public void importToDb(Long period_id, List<MultipartFile> multipleFiles) {
         Period period = new Period();
-        period.setId(id_project);
+        period.setId(period_id);
 
         if (!multipleFiles.isEmpty()) {
             List<Project> projects = new ArrayList<>();
@@ -259,7 +313,7 @@ public class ProjectServiceImpl implements ProjectService {
                     XSSFWorkbook workbook = new XSSFWorkbook(multipartFile.getInputStream());
                     XSSFSheet sheet = workbook.getSheetAt(0);
 
-                    System.out.print(getNumberOfNonEmptyCells(sheet, 0));
+//                    System.out.print(getNumberOfNonEmptyCells(sheet, 0));
                     // looping----------------------------------------------------------------
                     for (int rowIndex = 0; rowIndex < getNumberOfNonEmptyCells(sheet, 0) - 1; rowIndex++) {
 
@@ -299,6 +353,98 @@ public class ProjectServiceImpl implements ProjectService {
                         String documentation = String.valueOf(row.getCell(17));
                         String info2 = String.valueOf(row.getCell(18));
 
+                        // Memisahkan string berdasarkan newline menjadi array
+                        String[] nameUserSponsors = userSponsor.split("\n");
+                        List<UserSponsor> userSponsors = new ArrayList<>();
+                        for (String nameUserSponsor : nameUserSponsors) {
+                            nameUserSponsor = nameUserSponsor.trim();
+
+                            // melakukan pengecekan di user sponsor sudah terdaftar atau belum
+                            if(!userSponsorRepository.existsByName(nameUserSponsor)){
+                                // jika belum terdaftar maka akan create user sponsor
+                                UserSponsor tempUserSponsor = new UserSponsor();
+                                tempUserSponsor.setName(nameUserSponsor);
+                                userSponsorRepository.save(tempUserSponsor);
+                            }
+
+                            UserSponsor dataUserSponsor = new UserSponsor();
+
+                            // sudah dapat dipastikan data pasti terdaftar di database
+                            dataUserSponsor = userSponsorRepository.getByName(nameUserSponsor);
+
+                            // memasukkan object data tersebut ke list
+                            userSponsors.add(dataUserSponsor);
+                        }
+
+                        // Memisahkan string berdasarkan newline menjadi array
+                        String[] nameAppPlatforms = appPlatform.split("\n");
+                        List<AppPlatform> appPlatforms = new ArrayList<>();
+                        for (String nameAppPlatform : nameAppPlatforms) {
+                            nameAppPlatform = nameAppPlatform.trim();
+
+                            // melakukan pengecekan di user sponsor sudah terdaftar atau belum
+                            if(!appPlatformRepository.existsByName(nameAppPlatform)){
+                                // jika belum terdaftar maka akan create user sponsor
+                                AppPlatform tempAppPlatform = new AppPlatform();
+                                tempAppPlatform.setName(nameAppPlatform);
+                                appPlatformRepository.save(tempAppPlatform);
+                            }
+
+                            AppPlatform dataAppPlatform = new AppPlatform();
+
+                            // sudah dapat dipastikan data pasti terdaftar di database
+                            dataAppPlatform = appPlatformRepository.getByName(nameAppPlatform);
+
+                            // memasukkan object data tersebut ke list
+                            appPlatforms.add(dataAppPlatform);
+                        }
+
+                        // Memisahkan string berdasarkan newline menjadi array
+                        String[] nameTechPlatforms = techPlatform.split("\n");
+                        List<TechPlatform> techPlatforms = new ArrayList<>();
+                        for (String nameTechPlatform : nameTechPlatforms) {
+                            nameTechPlatform = nameTechPlatform.trim();
+
+                            // melakukan pengecekan di user sponsor sudah terdaftar atau belum
+                            if(!techPlatformRepository.existsByName(nameTechPlatform)){
+                                // jika belum terdaftar maka akan create user sponsor
+                                TechPlatform tempTechPlatform = new TechPlatform();
+                                tempTechPlatform.setName(nameTechPlatform);
+                                techPlatformRepository.save(tempTechPlatform);
+                            }
+
+                            TechPlatform dataTechPlatform = new TechPlatform();
+
+                            // sudah dapat dipastikan data pasti terdaftar di database
+                            dataTechPlatform = techPlatformRepository.getByName(nameTechPlatform);
+
+                            // memasukkan object data tersebut ke list
+                            techPlatforms.add(dataTechPlatform);
+                        }
+
+                        // Memisahkan string berdasarkan newline menjadi array
+                        String[] namePics = pic.split("\n");
+                        List<Pic> pics = new ArrayList<>();
+                        for (String namePic : namePics) {
+                            namePic = namePic.trim();
+
+                            // melakukan pengecekan di user sponsor sudah terdaftar atau belum
+                            if(!picRepository.existsByName(namePic)){
+                                // jika belum terdaftar maka akan create user sponsor
+                                Pic tempPic = new Pic();
+                                tempPic.setName(namePic);
+                                picRepository.save(tempPic);
+                            }
+
+                            Pic dataPic = new Pic();
+
+                            // sudah dapat dipastikan data pasti terdaftar di database
+                            dataPic = picRepository.getByName(namePic);
+
+                            // memasukkan object data tersebut ke list
+                            pics.add(dataPic);
+                        }
+
                         Project project = Project.builder()
                                 .period(period)
                                 .id(id)
@@ -306,10 +452,10 @@ public class ProjectServiceImpl implements ProjectService {
                                 .unit(unit)
                                 .category(category)
                                 .name(name)
-                                .userSponsor(userSponsor)
-                                .appPlatform(appPlatform)
-                                .techPlatform(techPlatform)
-                                .pic(pic)
+                                .userSponsor(userSponsors)
+                                .appPlatform(appPlatforms)
+                                .techPlatform(techPlatforms)
+                                .pic(pics)
                                 .startDate(startDate)
                                 .dueDate(dueDate)
                                 .type(type)
@@ -325,6 +471,13 @@ public class ProjectServiceImpl implements ProjectService {
                         projects.add(project);
 
                     }
+                    if (workbook != null) {
+                        try {
+                            workbook.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException("fail to close Excel file: " + e.getMessage());
+                        }
+                    }
 
                 } catch (IOException e) {
                     throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
@@ -338,19 +491,24 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private Long idPeriodParamChangerIfNull(Long id_period) {
-        if(id_period == null || id_period == 0) {
+    private Period getPeriodByYear(Long year) {
+        if(year == null || year == 0) {
 
             Date date = new Date();
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            long year = localDate.getYear();
+            long currentYear = localDate.getYear();
 
-            Period period = periodServiceImpl.getPeriodByYear(year);
-
-            return period.getId();
+            return periodServiceImpl.getPeriodByYear(currentYear);
         } else {
-            return id_period;
+            Period period = new Period();
+            if(year != null){
+                period = periodServiceImpl.getPeriodByYear(year);
+                if(period == null) {
+                    period.setId(0);
+                }
+            }
+            return period;
         }
     }
 

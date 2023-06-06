@@ -24,11 +24,11 @@ public interface ProjectService {
 
     void importToDb(Long id_project, List<MultipartFile> multipleFiles);
 
-    ResponseEntity<Object> getProjectStat(Long id_period, String month);
+    ResponseEntity<Object> getProjectStat(Long year, String month);
 
     ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String unit, String category);
 
-    ResponseEntity<Object> getEvidenceKpi(Long id_period, String month);
+    ResponseEntity<Object> getEvidenceKpi(Long year, String month);
 
     ByteArrayInputStream load();
 }
