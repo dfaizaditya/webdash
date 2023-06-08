@@ -8,6 +8,11 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.kbbukopin.webdash.services.appPlatform.AppPlatformService;
+import com.kbbukopin.webdash.services.pic.PicService;
+import com.kbbukopin.webdash.services.techPlatform.TechPlatformService;
+import com.kbbukopin.webdash.services.userSponsor.UserSponsorService;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -32,6 +37,18 @@ import com.kbbukopin.webdash.utils.AppConstants;
 public class ProjectController {
 	@Autowired
 	private ProjectService projectService;
+
+	@Autowired
+	private UserSponsorService userSponsorService;
+
+	@Autowired
+	private AppPlatformService appPlatformService;
+
+	@Autowired
+	private TechPlatformService techPlatformService;
+
+	@Autowired
+	private PicService picService;
 
 	@GetMapping
 	public PagedResponse<Project> getAllProjects(
@@ -92,8 +109,8 @@ public class ProjectController {
 	}
 
 	@GetMapping("/enums")
-    public Map<String, List<String>> getAllEnums() {
-        Map<String, List<String>> result = new HashMap<>();
+    public LinkedMap<String, Object> getAllEnums() {
+		LinkedMap<String, Object> result = new LinkedMap<>();
         
         // Get all genre names from the Genre enum
         List<String> unitType = Arrays.stream(UnitType.values())
@@ -112,6 +129,11 @@ public class ProjectController {
                 .map(ProjectType::getName)
                 .collect(Collectors.toList());
         result.put("projectType", projectType);
+
+		result.put("userSponsor", userSponsorService.getAllUserSponsors());
+		result.put("appPlatform", appPlatformService.getAllAppPlatforms());
+		result.put("techPlatform", techPlatformService.getAllTechPlatforms());
+		result.put("pic", picService.getAllPics());
 
 		return result;
     }
