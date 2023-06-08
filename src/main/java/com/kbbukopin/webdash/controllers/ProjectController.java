@@ -1,9 +1,7 @@
 package com.kbbukopin.webdash.controllers;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
