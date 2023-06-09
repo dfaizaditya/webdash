@@ -87,11 +87,11 @@ public class Project extends DateAudit{
           inverseJoinColumns = @JoinColumn(name = "pic_id"))
   private List<Pic> pic;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
   @Column(name = "start_date")
   private LocalDate startDate;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
   @Column(name = "due_date")
   private LocalDate dueDate;
 
