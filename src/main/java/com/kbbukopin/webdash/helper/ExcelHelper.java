@@ -3,32 +3,31 @@ package com.kbbukopin.webdash.helper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.kbbukopin.webdash.entity.*;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 public class ExcelHelper {
   public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  static String[] HEADERs = { "No Tiket/RFC",
-      "Unit", "Kategori", "Nama Proyek/Insiden",
-      "User Sponsor", "Platform Aplikasi",
-      "Platform Teknologi", "Start Date", "Due Date",
-      "Tipe", "Progress Development (%)", "Status",
-      "Keterangan (Peran DPTI hingga PRA UAT)",
-      "Change", "Type", "RFC", "Dokumentasi", "Keterangan" };
+  static String[] HEADERs = {
+          "No Tiket/RFC", "Month", "Unit", "Kategori",
+          "Nama Proyek/ Insiden", "User Sponsor", "Platform Aplikasi", "Platform Teknologi",
+          "PIC", "Start Date", "Due Date", "Tipe",
+          "Progress Development (%)", "Status", "Keterangan \n(Peran DPTI hingga PRA UAT)", "Change Type",
+          "RFC", "Dokumentasi", "Keterangan" };
+  static Double[] columnsWidth = {
+          26.75 , 11.03, 11.03, 11.03,
+          11.03, 11.03, 11.03, 22.85,
+          22.85, 11.03, 11.03, 22.45,
+          31.58, 25.2, 26.75, 22.72,
+          17.15, 13.5, 152.49
+  };
   static String SHEET = "Projects";
 
   public static boolean hasExcelFormat(MultipartFile file) {
@@ -51,6 +50,33 @@ public class ExcelHelper {
       for (int col = 0; col < HEADERs.length; col++) {
         Cell cell = headerRow.createCell(col);
         cell.setCellValue(HEADERs[col]);
+
+        // Inisialisasi cellstyle
+        CellStyle cellStyle = workbook.createCellStyle();
+
+        // Mengatur cell agar wrap text
+        cellStyle.setWrapText(true);
+
+        // Mengatur cell agar posisi konten di tengah
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Mengatur background color hitam
+        cellStyle.setFillForegroundColor(IndexedColors.BLACK.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Mengatur font
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        font.setFontName("Arial");
+
+        cellStyle.setFont(font);
+
+        cell.setCellStyle(cellStyle);
+
+        headerRow.setHeightInPoints(42);
+        sheet.setColumnWidth(col, (int) (columnsWidth[col] * 256));
       }
 
       int rowIdx = 1;
@@ -78,32 +104,64 @@ public class ExcelHelper {
         }
         String joinedNamesTechPlatform = String.join("\n", namesTechPlatform);
 
-        // melakukan join string pada tech platform
+        // melakukan join string pada pic
         List<String> namesPic = new ArrayList<>();
         for (Pic pic : project.getPic()) {
           namesPic.add(pic.getName());
         }
         String joinedNamesPic = String.join("\n", namesPic);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+
         row.createCell(0).setCellValue(project.getId());
         row.createCell(1).setCellValue(project.getMonth());
-        row.createCell(2).setCellValue(project.getUnit());
-        row.createCell(3).setCellValue(project.getCategory());
-        row.createCell(4).setCellValue(project.getName());
-        row.createCell(5).setCellValue(joinedNamesUserSponsor);
-        row.createCell(6).setCellValue(joinedNamesAppPlatform);
-        row.createCell(7).setCellValue(joinedNamesTechPlatform);
-        row.createCell(8).setCellValue(joinedNamesPic);
-        row.createCell(9).setCellValue(project.getStartDate());
-        row.createCell(10).setCellValue(project.getDueDate());
-        row.createCell(11).setCellValue(project.getType());
-        row.createCell(12).setCellValue(project.getProgress().doubleValue());
-        row.createCell(13).setCellValue(project.getStatus());
-        row.createCell(14).setCellValue(project.getInfo1());
-        row.createCell(15).setCellValue(project.getChangeType());
-        row.createCell(16).setCellValue(project.getRfc());
-        row.createCell(17).setCellValue(project.getDocumentation());
-        row.createCell(18).setCellValue(project.getInfo2());
+        row.createCell(2).setCellValue(project.getUnit().equalsIgnoreCase("null") ? "" : project.getUnit());
+        row.createCell(3).setCellValue(project.getCategory().equalsIgnoreCase("null") ? "" : project.getCategory());
+        row.createCell(4).setCellValue(project.getName().equalsIgnoreCase("null") ? "" : project.getName());
+
+//        row.createCell(5).setCellValue(joinedNamesUserSponsor.equalsIgnoreCase("null") ? "" : joinedNamesUserSponsor);
+//        row.createCell(6).setCellValue(joinedNamesAppPlatform.equalsIgnoreCase("null") ? "" : joinedNamesAppPlatform);
+//        row.createCell(7).setCellValue(joinedNamesTechPlatform.equalsIgnoreCase("null") ? "" : joinedNamesTechPlatform);
+//        row.createCell(8).setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
+        Cell cellUserSponsor = row.createCell(5);
+        cellUserSponsor.setCellValue(joinedNamesUserSponsor.equalsIgnoreCase("null") ? "" : joinedNamesUserSponsor);
+
+        Cell cellAppPlatform = row.createCell(6);
+        cellAppPlatform.setCellValue(joinedNamesAppPlatform.equalsIgnoreCase("null") ? "" : joinedNamesAppPlatform);
+
+        Cell cellTechPlatform = row.createCell(7);
+        cellTechPlatform.setCellValue(joinedNamesTechPlatform.equalsIgnoreCase("null") ? "" : joinedNamesTechPlatform);
+
+        Cell cellPic = row.createCell(8);
+        cellPic.setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
+
+        row.createCell(9).setCellValue(project.getStartDate() == null ? "" : project.getStartDate().format(formatter));
+        row.createCell(10).setCellValue(project.getDueDate() == null ? "" : project.getDueDate().format(formatter));
+        row.createCell(11).setCellValue(project.getType().equalsIgnoreCase("null") ? "" : project.getType());
+        row.createCell(12).setCellValue(project.getProgress().doubleValue()*100+"%");
+        row.createCell(13).setCellValue(project.getStatus().equalsIgnoreCase("null") ? "" : project.getStatus());
+        row.createCell(14).setCellValue(project.getInfo1().equalsIgnoreCase("null") ? "" : project.getInfo1());
+        row.createCell(15).setCellValue(project.getChangeType().equalsIgnoreCase("null") ? "" : project.getChangeType());
+        row.createCell(16).setCellValue(project.getRfc().equalsIgnoreCase("null") ? "" : project.getRfc());
+        row.createCell(17).setCellValue(project.getDocumentation().equalsIgnoreCase("null") ? "" : project.getDocumentation());
+
+//        row.createCell(18).setCellValue(project.getInfo2().equalsIgnoreCase("null") ? "" : project.getInfo2());
+        Cell cellInfo2 = row.createCell(18);
+        cellInfo2.setCellValue(project.getInfo2().equalsIgnoreCase("null") ? "" : project.getInfo2());
+
+        // Inisialisasi cellstyle
+        CellStyle cellStyle = workbook.createCellStyle();
+
+        // Mengatur cell agar wrap text
+        cellStyle.setWrapText(true);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        cellInfo2.setCellStyle(cellStyle);
+        cellUserSponsor.setCellStyle(cellStyle);
+        cellAppPlatform.setCellStyle(cellStyle);
+        cellTechPlatform.setCellStyle(cellStyle);
+        cellPic.setCellStyle(cellStyle);
+
       }
 
       workbook.write(out);
