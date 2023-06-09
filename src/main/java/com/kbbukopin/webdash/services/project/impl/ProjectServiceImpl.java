@@ -349,7 +349,7 @@ public class ProjectServiceImpl implements ProjectService {
                         String status = String.valueOf(row.getCell(13));
                         String info1 = String.valueOf(row.getCell(14));
                         String changeType = String.valueOf(row.getCell(15));
-                        String rfc = String.valueOf(row.getCell(16));
+                        String rfc = String.valueOf(getValue(row.getCell(16)));
                         String documentation = String.valueOf(row.getCell(17));
                         String info2 = String.valueOf(row.getCell(18));
 
@@ -604,8 +604,11 @@ public class ProjectServiceImpl implements ProjectService {
         return numOfNonEmptyCells;
     }
 
-    public ByteArrayInputStream load() {
-        List<Project> projects = projectRepository.findAll();
+    public ByteArrayInputStream load(Long year, String month) {
+
+        Period period = this.getPeriodByYear(year);
+
+        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;
