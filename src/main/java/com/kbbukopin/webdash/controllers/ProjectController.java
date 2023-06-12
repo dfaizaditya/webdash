@@ -126,6 +126,18 @@ public class ProjectController {
                 .collect(Collectors.toList());
         result.put("projectType", projectType);
 
+		// Get all status option 1 names from the StatusOptions1 enum
+		List<String> statusOptions1 = Arrays.stream(StatusOptions1.values())
+				.map(StatusOptions1::getName)
+				.collect(Collectors.toList());
+		result.put("statusOptions1", statusOptions1);
+
+		// Get all status option 2 names from the StatusOptions2 enum
+		List<String> statusOptions2 = Arrays.stream(StatusOptions2.values())
+				.map(StatusOptions2::getName)
+				.collect(Collectors.toList());
+		result.put("statusOptions2", statusOptions2);
+
 		// Get all change type names from the ChangeType enum
 		List<String> changeType = Arrays.stream(ChangeType.values())
 				.map(ChangeType::getName)
