@@ -1,18 +1,17 @@
 package com.kbbukopin.webdash.enums;
 
-public enum ChangeType {
-    NORMAL_MINOR("Normal Minor"),
-    NORMAL_MAJOR("Normal Major"),
-    NA("N/A");
+public enum StatusOptions1 {
+    FINISHED("Finished"),
+    ON_GOING("On Going"),
+    DITUNDA("Ditunda");
 
     private final String name;
 
-    private ChangeType(String name){
+    private StatusOptions1(String name) {
         this.name = name;
     }
 
     public String getName() {
         return name;
     }
-
 }
