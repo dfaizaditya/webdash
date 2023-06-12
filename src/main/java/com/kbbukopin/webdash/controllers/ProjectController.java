@@ -1,8 +1,5 @@
 package com.kbbukopin.webdash.controllers;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -159,33 +156,4 @@ public class ProjectController {
         message = "Uploaded the file successfully";
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }
-
-//	@GetMapping(path = "/export")
-//	public ResponseEntity<byte[]> exportDataFromDbToExcel(@RequestParam(required = false) Long year,
-//														  @RequestParam(required = false) String month) {
-//		try {
-//			ByteArrayOutputStream out = new ByteArrayOutputStream();
-//			ByteArrayInputStream in = projectService.load();
-//
-//			// Copy data dari ByteArrayInputStream ke ByteArrayOutputStream
-//			byte[] buffer = new byte[1024];
-//			int len;
-//			while ((len = in.read(buffer)) != -1) {
-//				out.write(buffer, 0, len);
-//			}
-//
-//			// Membuat array byte dari ByteArrayOutputStream
-//			byte[] excelBytes = out.toByteArray();
-//
-//			// Mengatur header respons
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-//			headers.setContentDispositionFormData("attachment", "Data Project "+month+"-"+year+".xlsx");
-//			headers.setCacheControl("must-revalidate, no-store");
-//
-//			return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
-//		} catch (IOException e) {
-//			throw new RuntimeException("Failed to export data to Excel: " + e.getMessage());
-//		}
-//	}
 }

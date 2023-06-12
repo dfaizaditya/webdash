@@ -16,13 +16,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class ExcelHelper {
   public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   static String[] HEADERs = {
-          "No Tiket/RFC", "Month", "Unit", "Kategori",
+          "No Tiket/RFC", "Tahun", "Bulan", "Unit", "Kategori",
           "Nama Proyek/ Insiden", "User Sponsor", "Platform Aplikasi", "Platform Teknologi",
           "PIC", "Start Date", "Due Date", "Tipe",
           "Progress Development (%)", "Status", "Keterangan \n(Peran DPTI hingga PRA UAT)", "Change Type",
           "RFC", "Dokumentasi", "Keterangan" };
   static Double[] columnsWidth = {
-          26.75 , 11.03, 11.03, 11.03,
+          26.75 , 11.03, 11.03, 11.03, 11.03,
           11.03, 11.03, 11.03, 22.85,
           22.85, 11.03, 11.03, 22.45,
           31.58, 25.2, 26.75, 22.72,
@@ -114,39 +114,40 @@ public class ExcelHelper {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
 
         row.createCell(0).setCellValue(project.getId());
-        row.createCell(1).setCellValue(project.getMonth());
-        row.createCell(2).setCellValue(project.getUnit().equalsIgnoreCase("null") ? "" : project.getUnit());
-        row.createCell(3).setCellValue(project.getCategory().equalsIgnoreCase("null") ? "" : project.getCategory());
-        row.createCell(4).setCellValue(project.getName().equalsIgnoreCase("null") ? "" : project.getName());
+        row.createCell(1).setCellValue(project.getPeriod().getYear());
+        row.createCell(2).setCellValue(project.getMonth());
+        row.createCell(3).setCellValue(project.getUnit().equalsIgnoreCase("null") ? "" : project.getUnit());
+        row.createCell(4).setCellValue(project.getCategory().equalsIgnoreCase("null") ? "" : project.getCategory());
+        row.createCell(5).setCellValue(project.getName().equalsIgnoreCase("null") ? "" : project.getName());
 
 //        row.createCell(5).setCellValue(joinedNamesUserSponsor.equalsIgnoreCase("null") ? "" : joinedNamesUserSponsor);
 //        row.createCell(6).setCellValue(joinedNamesAppPlatform.equalsIgnoreCase("null") ? "" : joinedNamesAppPlatform);
 //        row.createCell(7).setCellValue(joinedNamesTechPlatform.equalsIgnoreCase("null") ? "" : joinedNamesTechPlatform);
 //        row.createCell(8).setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
-        Cell cellUserSponsor = row.createCell(5);
+        Cell cellUserSponsor = row.createCell(6);
         cellUserSponsor.setCellValue(joinedNamesUserSponsor.equalsIgnoreCase("null") ? "" : joinedNamesUserSponsor);
 
-        Cell cellAppPlatform = row.createCell(6);
+        Cell cellAppPlatform = row.createCell(7);
         cellAppPlatform.setCellValue(joinedNamesAppPlatform.equalsIgnoreCase("null") ? "" : joinedNamesAppPlatform);
 
-        Cell cellTechPlatform = row.createCell(7);
+        Cell cellTechPlatform = row.createCell(8);
         cellTechPlatform.setCellValue(joinedNamesTechPlatform.equalsIgnoreCase("null") ? "" : joinedNamesTechPlatform);
 
-        Cell cellPic = row.createCell(8);
+        Cell cellPic = row.createCell(9);
         cellPic.setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
 
-        row.createCell(9).setCellValue(project.getStartDate() == null ? "" : project.getStartDate().format(formatter));
-        row.createCell(10).setCellValue(project.getDueDate() == null ? "" : project.getDueDate().format(formatter));
-        row.createCell(11).setCellValue(project.getType().equalsIgnoreCase("null") ? "" : project.getType());
-        row.createCell(12).setCellValue(project.getProgress().doubleValue()*100+"%");
-        row.createCell(13).setCellValue(project.getStatus().equalsIgnoreCase("null") ? "" : project.getStatus());
-        row.createCell(14).setCellValue(project.getInfo1().equalsIgnoreCase("null") ? "" : project.getInfo1());
-        row.createCell(15).setCellValue(project.getChangeType().equalsIgnoreCase("null") ? "" : project.getChangeType());
-        row.createCell(16).setCellValue(project.getRfc().equalsIgnoreCase("null") ? "" : project.getRfc());
-        row.createCell(17).setCellValue(project.getDocumentation().equalsIgnoreCase("null") ? "" : project.getDocumentation());
+        row.createCell(10).setCellValue(project.getStartDate() == null ? "" : project.getStartDate().format(formatter));
+        row.createCell(11).setCellValue(project.getDueDate() == null ? "" : project.getDueDate().format(formatter));
+        row.createCell(12).setCellValue(project.getType().equalsIgnoreCase("null") ? "" : project.getType());
+        row.createCell(13).setCellValue(project.getProgress().doubleValue()*100+"%");
+        row.createCell(14).setCellValue(project.getStatus().equalsIgnoreCase("null") ? "" : project.getStatus());
+        row.createCell(15).setCellValue(project.getInfo1().equalsIgnoreCase("null") ? "" : project.getInfo1());
+        row.createCell(16).setCellValue(project.getChangeType().equalsIgnoreCase("null") ? "" : project.getChangeType());
+        row.createCell(17).setCellValue(project.getRfc().equalsIgnoreCase("null") ? "" : project.getRfc());
+        row.createCell(18).setCellValue(project.getDocumentation().equalsIgnoreCase("null") ? "" : project.getDocumentation());
 
 //        row.createCell(18).setCellValue(project.getInfo2().equalsIgnoreCase("null") ? "" : project.getInfo2());
-        Cell cellInfo2 = row.createCell(18);
+        Cell cellInfo2 = row.createCell(19);
         cellInfo2.setCellValue(project.getInfo2().equalsIgnoreCase("null") ? "" : project.getInfo2());
 
         // Inisialisasi cellstyle
