@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.kbbukopin.webdash.enums.*;
 import com.kbbukopin.webdash.services.appPlatform.AppPlatformService;
 import com.kbbukopin.webdash.services.pic.PicService;
 import com.kbbukopin.webdash.services.techPlatform.TechPlatformService;
@@ -23,9 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.entity.Project;
-import com.kbbukopin.webdash.enums.CategoryType;
-import com.kbbukopin.webdash.enums.ProjectType;
-import com.kbbukopin.webdash.enums.UnitType;
 import com.kbbukopin.webdash.response.ResponseMessage;
 import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppConstants;
@@ -110,23 +108,35 @@ public class ProjectController {
     public LinkedMap<String, Object> getAllEnums() {
 		LinkedMap<String, Object> result = new LinkedMap<>();
         
-        // Get all genre names from the Genre enum
+        // Get all unit names from the Unit enum
         List<String> unitType = Arrays.stream(UnitType.values())
                 .map(UnitType::getName)
                 .collect(Collectors.toList());
         result.put("unitType", unitType);
         
-        // Get all age restriction names from the AgeRestriction enum
+        // Get all category names from the Category enum
         List<String> categoryType = Arrays.stream(CategoryType.values())
                 .map(CategoryType::getName)
                 .collect(Collectors.toList());
         result.put("categoryType", categoryType);
 
-		// Get all age restriction names from the AgeRestriction enum
+		// Get all project type names from the ProjectType enum
         List<String> projectType = Arrays.stream(ProjectType.values())
                 .map(ProjectType::getName)
                 .collect(Collectors.toList());
         result.put("projectType", projectType);
+
+		// Get all change type names from the ChangeType enum
+		List<String> changeType = Arrays.stream(ChangeType.values())
+				.map(ChangeType::getName)
+				.collect(Collectors.toList());
+		result.put("changeType", changeType);
+
+		// Get all documentation type names from the DocumentationType enum
+		List<String> documentationType = Arrays.stream(DocumentationType.values())
+				.map(DocumentationType::getName)
+				.collect(Collectors.toList());
+		result.put("documentationType", documentationType);
 
 		result.put("userSponsor", userSponsorService.getAllUserSponsors());
 		result.put("appPlatform", appPlatformService.getAllAppPlatforms());
