@@ -1,13 +1,13 @@
 package com.kbbukopin.webdash.enums;
 
-public enum UnitType {
-    CBS("CBS"),
-    KREDIT("Kredit"),
-    PACKAGE("Package");
+public enum DocumentationType {
+
+    LENGKAP("Lengkap"),
+    TIDAK_LENGKAP("Tidak Lengkap");
 
     private final String name;
 
-    private UnitType(String name) {
+    private DocumentationType(String name){
         this.name = name;
     }
 
@@ -15,4 +15,3 @@ public enum UnitType {
         return name;
     }
 }
-
