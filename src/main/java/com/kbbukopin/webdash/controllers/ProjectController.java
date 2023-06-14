@@ -78,6 +78,22 @@ public class ProjectController {
 		return projectService.deleteProject(id, month);
 	}
 
+	@DeleteMapping("/deleteMultiple")
+	public ResponseEntity<Object> deleteMultipleProject(@RequestBody List<Project> projects) {
+		try {
+			List<Long> ids = projects.stream()
+					.map(Project::getId)
+					.collect(Collectors.toList());
+			List<String> months = projects.stream()
+					.map(Project::getMonth)
+					.collect(Collectors.toList());
+
+			return projectService.deleteMultipleProjects(ids, months);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete data");
+		}
+	}
+
 	@GetMapping("/statistics")
 	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) Long year,
 												 @RequestParam(required = false) String month) {

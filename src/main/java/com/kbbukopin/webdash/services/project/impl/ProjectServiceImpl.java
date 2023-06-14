@@ -175,43 +175,24 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
 
-        // variabel yang akan berisi data id user sponsor yang tidak terpakai
-        List<Long> idUserSponsors = new ArrayList<>();
-        for (UserSponsor userSponsor : project.getUserSponsor()) {
-            if (!userSponsorRepository.existProjectsByUserSponsorIdExceptItself(id, month,userSponsor.getId())) {
-                idUserSponsors.add(userSponsor.getId());
-            }
-        }
-
-        // variabel yang akan berisi data id app platform yang tidak terpakai
-        List<Long> idAppPlatforms = new ArrayList<>();
-        for (AppPlatform appPlatform : project.getAppPlatform()) {
-            if (!appPlatformRepository.existProjectsByAppPlatformIdExceptItself(id, month,appPlatform.getId())) {
-                idAppPlatforms.add(appPlatform.getId());
-            }
-        }
-
-        // variabel yang akan berisi data id tech platform yang tidak terpakai
-        List<Long> idTechPlatforms = new ArrayList<>();
-        for (TechPlatform techPlatform : project.getTechPlatform()) {
-            if (!techPlatformRepository.existProjectsByTechPlatformIdExceptItself(id, month,techPlatform.getId())) {
-                idTechPlatforms.add(techPlatform.getId());
-            }
-        }
-
-        // variabel yang akan berisi data id tech platform yang tidak terpakai
-        List<Long> idPic = new ArrayList<>();
-        for (Pic pic : project.getPic()) {
-            if (!picRepository.existProjectsByPicIdExceptItself(id, month, pic.getId())) {
-                idPic.add(pic.getId());
-            }
-        }
-
         projectRepository.deleteByIdAndMonth(id, month);
-        userSponsorRepository.deleteUserSponsorEntries(idUserSponsors);
-        appPlatformRepository.deleteAppPlatformEntries(idAppPlatforms);
-        techPlatformRepository.deleteTechPlatformEntries(idTechPlatforms);
-        picRepository.deletePicEntries(idPic);
+        userSponsorRepository.deleteUserSponsorNotExistOnPivot();
+        appPlatformRepository.deleteAppPlatformNotExistOnPivot();
+        techPlatformRepository.deleteTechPlatformNotExistOnPivot();
+        picRepository.deletePicNotExistOnPivot();
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months){
+
+        projectRepository.deleteProjectEntries(ids, months);
+        userSponsorRepository.deleteUserSponsorNotExistOnPivot();
+        appPlatformRepository.deleteAppPlatformNotExistOnPivot();
+        techPlatformRepository.deleteTechPlatformNotExistOnPivot();
+        picRepository.deletePicNotExistOnPivot();
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
     }

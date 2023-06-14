@@ -22,6 +22,8 @@ public interface ProjectService {
 
     ResponseEntity<Object> deleteProject(Long id, String month);
 
+    ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months);
+
     void importToDb(Long id_project, List<MultipartFile> multipleFiles);
 
     ResponseEntity<Object> getProjectStat(Long year, String month);
