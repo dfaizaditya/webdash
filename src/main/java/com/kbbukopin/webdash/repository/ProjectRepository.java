@@ -29,6 +29,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     void deleteByIdAndMonth(@Param("id") Long id,
                             @Param("month") String month);
 
+    @Modifying
+    @Query(value = "DELETE FROM Project p WHERE p.id IN :ids AND p.month IN :months")
+    void deleteProjectEntries(@Param("ids") Iterable<Long> ids,
+                              @Param("months") Iterable<String> months);
+
     @Query(value = "SELECT p.type FROM Project p WHERE " +
             "p.period_id = :period_id AND p.month = :month", nativeQuery = true)
     List<String> getColumnTypeList(@Param("period_id") Long period_id,

@@ -20,7 +20,7 @@ public class Period extends DateAudit{
     @Column(name = "id")
     private long id;
 
-    @Column(name = "year")
+    @Column(name = "year", unique = true)
     private long year;
 }
 
