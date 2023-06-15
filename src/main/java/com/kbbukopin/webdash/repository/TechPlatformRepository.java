@@ -24,10 +24,6 @@ public interface TechPlatformRepository extends JpaRepository<TechPlatform, Long
                                                      @Param("tech_platform_id") Long tech_platform_id);
 
     @Modifying
-    @Query(value = "DELETE FROM tech_platform tp WHERE tp.id IN :ids", nativeQuery = true)
-    void deleteTechPlatformEntries(@Param("ids") Iterable<Long> ids);
-
-    @Modifying
     @Query(value = "DELETE FROM tech_platform tp WHERE id NOT IN " +
             "(SELECT ptp.tech_platform_id FROM project_tech_platform ptp)", nativeQuery = true)
     void deleteTechPlatformNotExistOnPivot();

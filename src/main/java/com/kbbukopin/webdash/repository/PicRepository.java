@@ -24,10 +24,6 @@ public interface PicRepository extends JpaRepository<Pic, Long> {
                                              @Param("pic_id") Long pic_id);
 
     @Modifying
-    @Query(value = "DELETE FROM pic p WHERE p.id IN :ids", nativeQuery = true)
-    void deletePicEntries(@Param("ids") Iterable<Long> ids);
-
-    @Modifying
     @Query(value = "DELETE FROM pic p WHERE id NOT IN " +
             "(SELECT pp.pic_id FROM project_pic pp)", nativeQuery = true)
     void deletePicNotExistOnPivot();
