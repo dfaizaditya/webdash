@@ -201,7 +201,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> getProjectStat(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
-        month = monthParamChangerIfNull(month);
+//        month = monthParamChangerIfNull(month);
 
         List<String> clType = projectRepository.getColumnTypeList(period.getId(), month);
         List<String> clComplete = projectRepository.getColumnCompleteList(period.getId(), month);
