@@ -25,10 +25,6 @@ public interface UserSponsorRepository extends JpaRepository<UserSponsor, Long> 
                                                      @Param("user_sponsor_id") Long user_sponsor_id);
 
     @Modifying
-    @Query(value = "DELETE FROM user_sponsor us WHERE us.id IN :ids", nativeQuery = true)
-    void deleteUserSponsorEntries(@Param("ids") Iterable<Long> ids);
-
-    @Modifying
     @Query(value = "DELETE FROM user_sponsor us WHERE id NOT IN " +
             "(SELECT pus.user_sponsor_id FROM project_user_sponsor pus)", nativeQuery = true)
     void deleteUserSponsorNotExistOnPivot();
