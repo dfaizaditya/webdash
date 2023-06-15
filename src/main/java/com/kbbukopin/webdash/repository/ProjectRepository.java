@@ -35,17 +35,20 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                               @Param("months") Iterable<String> months);
 
     @Query(value = "SELECT p.type FROM Project p WHERE " +
-            "p.period_id = :period_id AND p.month = :month", nativeQuery = true)
+            "p.period_id = :period_id AND " +
+            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnTypeList(@Param("period_id") Long period_id,
                                    @Param("month") String month);
 
     @Query(value = "SELECT p.info1 FROM Project p WHERE " +
-            "p.period_id = :period_id AND p.month = :month", nativeQuery = true)
+            "p.period_id = :period_id AND " +
+            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnCompleteList(@Param("period_id") Long period_id,
                                        @Param("month") String month);
 
     @Query(value = "SELECT p.unit FROM Project p WHERE " +
-            "p.period_id = :period_id AND p.month = :month", nativeQuery = true)
+            "p.period_id = :period_id AND " +
+            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnUnitList(@Param("period_id") Long period_id,
                                    @Param("month") String month);
 
