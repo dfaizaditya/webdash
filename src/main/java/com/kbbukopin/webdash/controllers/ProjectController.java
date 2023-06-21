@@ -177,7 +177,15 @@ public class ProjectController {
 	@GetMapping("/download")
   	public ResponseEntity<Resource> getFile(@RequestParam(required = false) Long year,
 											@RequestParam(required = false) String month) {
-    String filename = "Projects "+month+"-"+year+".xlsx";
+
+	String filename = "Projects ";
+
+	if(month==null || month.equals("")){
+		filename += year+".xlsx";
+	} else {
+		filename += month+"-"+year+".xlsx";
+	}
+
     InputStreamResource file = new InputStreamResource(projectService.load(year, month));
 
     return ResponseEntity.ok()
