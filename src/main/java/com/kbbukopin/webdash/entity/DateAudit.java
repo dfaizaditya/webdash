@@ -25,11 +25,11 @@ public abstract class DateAudit implements Serializable {
 	@JsonIgnore
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
-	private Date created_at;
+	private Date createdAt;
 
 	@JsonIgnore
 	@UpdateTimestamp
 	@Column(insertable = false)
-	private Date updated_at;
+	private Date updatedAt;
 
 }
