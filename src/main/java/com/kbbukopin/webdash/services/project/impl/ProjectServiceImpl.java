@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,8 @@ public class ProjectServiceImpl implements ProjectService {
     public PagedResponse<Project> getAllProjects(int page, int size) {
         AppUtils.validatePageNumberAndSize(page, size);
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort = Sort.by(Sort.Direction.DESC, "updatedAt", "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Project> projects = projectRepository.findAll(pageable);
 
