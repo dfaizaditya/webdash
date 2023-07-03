@@ -2,8 +2,9 @@ package com.kbbukopin.webdash.enums;
 
 public enum ProjectType {
     IN_HOUSE("In House"),
+    IN_HOUSE_LINTAS_UNIT("In House - Lintas Unit"),
     OUTSOURCE("Outsource"),
-    IN_HOUSE_LINTAS_UNIT("In House - Lintas Unit");
+    JOIN_DEV("Join Dev");
 
     private final String name;
 
