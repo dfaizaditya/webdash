@@ -57,7 +57,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "(:month IS NULL OR p.month LIKE '%'||:month||'%') AND " +
             "(:name IS NULL OR LOWER(p.name) LIKE LOWER('%'||:name||'%')) AND " +
             "(:info1 IS NULL OR LOWER(p.info1) LIKE LOWER(:info1)) AND " +
-            "(:unit IS NULL OR LOWER(p.unit) LIKE LOWER('%'||:unit||'%')) AND " +
+            "(:unit IS NULL OR LOWER(p.unit) LIKE LOWER(:unit)) AND " +
+            "(:type IS NULL OR LOWER(p.type) LIKE LOWER(:type)) AND " +
             "(:category IS NULL OR LOWER(p.category) LIKE LOWER('%'||:category||'%')) " +
             "ORDER BY p.updated_at DESC, p.created_at DESC", nativeQuery = true)
     List<Project> searchProjects(
@@ -66,6 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             @Param("name") String name,
             @Param("info1") String info1,
             @Param("unit") String unit,
+            @Param("type") String type,
             @Param("category") String category);
 
     @Query(value="SELECT " +

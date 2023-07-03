@@ -114,11 +114,12 @@ public class ProjectController {
 		@RequestParam(required = false) String name,
 		@RequestParam(required = false) String info1,
         @RequestParam(required = false) String unit,
+		@RequestParam(required = false) String type,
         @RequestParam(required = false) String category
     	// @RequestParam(required = false, defaultValue = "false") boolean availableOnly
 		)
 	{
-		return projectService.getProjectsByFilter(year, month, name, info1, unit, category);
+		return projectService.getProjectsByFilter(year, month, name, info1, unit, type, category);
 	}
 
 	@GetMapping("/enums")

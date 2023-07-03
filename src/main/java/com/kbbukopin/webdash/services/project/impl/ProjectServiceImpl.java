@@ -91,11 +91,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String category) {
+    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String type, String category) {
 
         Period period = this.getPeriodByYear(year);
 
-        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, info1, unit, category);
+        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, info1, unit, type, category);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
@@ -622,7 +622,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         Period period = this.getPeriodByYear(year);
 
-        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null, null);
+        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null, null, null);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;
