@@ -55,14 +55,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query(value = "SELECT p.* FROM Project p WHERE " +
             "(:period_id IS NULL OR p.period_id = :period_id) AND " +
             "(:month IS NULL OR p.month LIKE '%'||:month||'%') AND " +
-            "(:name IS NULL OR LOWER(p.name) LIKE '%'||:name||'%') AND " +
-            "(:unit IS NULL OR LOWER(p.unit) LIKE '%'||:unit||'%') AND " +
-            "(:category IS NULL OR LOWER(p.category) LIKE '%'||:category||'%') " +
+            "(:name IS NULL OR LOWER(p.name) LIKE LOWER('%'||:name||'%')) AND " +
+            "(:info1 IS NULL OR LOWER(p.info1) LIKE LOWER(:info1)) AND " +
+            "(:unit IS NULL OR LOWER(p.unit) LIKE LOWER('%'||:unit||'%')) AND " +
+            "(:category IS NULL OR LOWER(p.category) LIKE LOWER('%'||:category||'%')) " +
             "ORDER BY p.updated_at DESC, p.created_at DESC", nativeQuery = true)
     List<Project> searchProjects(
             @Param("period_id") Long period_id,
             @Param("month") String month,
             @Param("name") String name,
+            @Param("info1") String info1,
             @Param("unit") String unit,
             @Param("category") String category);
 
