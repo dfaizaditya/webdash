@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.kbbukopin.webdash.dto.KpiHandler;
 import com.kbbukopin.webdash.entity.*;
@@ -90,11 +91,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String unit, String category) {
+    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String category) {
 
         Period period = this.getPeriodByYear(year);
 
-        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, unit, category);
+        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, info1, unit, category);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
@@ -213,25 +214,55 @@ public class ProjectServiceImpl implements ProjectService {
         List<Object> listOfComplete = new ArrayList<>();
         List<Object> listOfUnit = new ArrayList<>();
 
-        for (var entry : mapCount(clType).entrySet()) {
+        // Mengambil set entry dari mapCount dan mengubahnya menjadi stream
+        Stream<Map.Entry<String, Long>> entryStreamOfType = mapCount(clType).entrySet().stream();
+        Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
+        Stream<Map.Entry<String, Long>> entryStreamOfUnit = mapCount(clUnit).entrySet().stream();
+
+        // Mengurutkan stream berdasarkan nilai (value) secara descending
+        entryStreamOfType = entryStreamOfType.sorted(Map.Entry.comparingByValue());
+        entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
+        entryStreamOfUnit = entryStreamOfUnit.sorted(Map.Entry.comparingByValue());
+
+        // Mengkonversi setiap entry menjadi JsonObject dan menambahkannya ke listOfType
+        entryStreamOfType.forEach(entry -> {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
             listOfType.add(myjson);
-        }
+        });
 
-        for (var entry : mapCount(clComplete).entrySet()) {
+        entryStreamOfComplete.forEach(entry -> {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
-
             listOfComplete.add(myjson);
-        }
+        });
 
-        for (var entry : mapCount(clUnit).entrySet()) {
+        entryStreamOfUnit.forEach(entry -> {
             JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
             Object myjson = gson.fromJson(inputString, Object.class);
-
             listOfUnit.add(myjson);
-        }
+        });
+
+
+//        for (var entry : mapCount(clType).entrySet()) {
+//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+//            Object myjson = gson.fromJson(inputString, Object.class);
+//            listOfType.add(myjson);
+//        }
+//
+//        for (var entry : mapCount(clComplete).entrySet()) {
+//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+//            Object myjson = gson.fromJson(inputString, Object.class);
+//
+//            listOfComplete.add(myjson);
+//        }
+//
+//        for (var entry : mapCount(clUnit).entrySet()) {
+//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+//            Object myjson = gson.fromJson(inputString, Object.class);
+//
+//            listOfUnit.add(myjson);
+//        }
 
         return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete,
                 listOfUnit);
@@ -591,7 +622,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         Period period = this.getPeriodByYear(year);
 
-        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null);
+        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null, null);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;
