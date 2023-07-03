@@ -294,7 +294,7 @@ public class ProjectServiceImpl implements ProjectService {
         Period period = this.getPeriodByYear(year);
         month = monthParamChangerIfNull(month);
 
-        String[] types = {"In House", "Insiden", "JoinDev", "Outsource"};
+        String[] types = {"In House", "Insiden", "Join Dev", "Outsource"};
         LinkedMap<String, String> category = new LinkedMap<>();
 
         for (String type : types) {
