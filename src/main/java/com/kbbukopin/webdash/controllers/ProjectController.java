@@ -122,6 +122,12 @@ public class ProjectController {
 		return projectService.getProjectsByFilter(year, month, name, info1, unit, type, category);
 	}
 
+	@GetMapping("/pinned")
+	public ResponseEntity<Object> getProjectsByFilter()
+	{
+		return projectService.getPinnedProjects();
+	}
+
 	@GetMapping("/enums")
     public LinkedMap<String, Object> getAllEnums() {
 		LinkedMap<String, Object> result = new LinkedMap<>();

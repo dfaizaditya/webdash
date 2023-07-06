@@ -84,6 +84,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getPinnedProjects() {
+        List<Project> projects = projectRepository.findAll();
+        // Get only the first 10 projects
+        List<Project> sublistProjects = projects.subList(0, Math.min(10, projects.size()));
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, sublistProjects);
+    }
+
+    @Override
     public ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month) {
         Project project = projectRepository.getProjectByIdAndMonth(id,month)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
