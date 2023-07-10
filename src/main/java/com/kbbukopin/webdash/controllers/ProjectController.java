@@ -210,4 +210,11 @@ public class ProjectController {
         message = "Uploaded the file successfully";
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }
+
+	@GetMapping("/statistics/dashboard")
+	public ResponseEntity<Object> get(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectStat(year, month);
+	}
+
 }
