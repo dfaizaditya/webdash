@@ -83,7 +83,6 @@ public class ProjectServiceImpl implements ProjectService {
                 projects.getTotalPages(), projects.isLast());
     }
 
-    @Override
     public ResponseEntity<Object> getPinnedProjects() {
         List<Project> projects = projectRepository.findAll();
         // Get only the first 10 projects
@@ -92,8 +91,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<Object> getProjectByIdAndMonth(Long id, String month) {
-        Project project = projectRepository.getProjectByIdAndMonth(id,month)
+    public ResponseEntity<Object> getProjectByIdAndMonthAndYear(Long id, String month, Long year) {
+        Period period = getPeriodByYear(year);
+        Project project = projectRepository.getProjectByIdAndMonthAndPeriodId(id, month, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
     }
@@ -111,7 +111,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ResponseEntity<Object> createProject(@RequestBody Project newProject) {
 
-        if(!projectRepository.existsByIdAndMonth(newProject.getId(), monthWordFixer(newProject.getMonth()))){
+        if(!projectRepository.existsByIdAndMonth(newProject.getId(), monthWordFixer(newProject.getMonth()), newProject.getPeriod().getId())){
             Project project = Project.builder()
                     .id(newProject.getId())
                     .month(monthWordFixer(newProject.getMonth()))
@@ -138,7 +138,7 @@ public class ProjectServiceImpl implements ProjectService {
             projectRepository.save(project);
 
             return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
-
+//
         } else {
             return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
         }
@@ -147,11 +147,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ResponseEntity<Object> updateProject(Long id, String month, @RequestBody Project newProject) {
-        Project project = projectRepository.getProjectByIdAndMonth(id,month)
+    public ResponseEntity<Object> updateProject(Long id, String month, Long year, @RequestBody Project newProject) {
+        Period period = getPeriodByYear(year);
+        Project project = projectRepository.getProjectByIdAndMonthAndPeriodId(id, month, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
 
-        project.setPeriod(newProject.getPeriod());
         project.setUnit(newProject.getUnit());
         project.setCategory(newProject.getCategory());
         project.setName(newProject.getName());
@@ -182,11 +182,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ResponseEntity<Object> deleteProject(Long id, String month) {
-        Project project = projectRepository.getProjectByIdAndMonth(id,month)
+    public ResponseEntity<Object> deleteProject(Long id, String month, Long year) {
+        Period period = getPeriodByYear(year);
+        Project project = projectRepository.getProjectByIdAndMonthAndPeriodId(id, month, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
 
-        projectRepository.deleteByIdAndMonth(id, month);
+        projectRepository.deleteByIdAndMonthAndPeriodId(id, month, period.getId());
         userSponsorRepository.deleteUserSponsorNotExistOnPivot();
         appPlatformRepository.deleteAppPlatformNotExistOnPivot();
         techPlatformRepository.deleteTechPlatformNotExistOnPivot();
@@ -197,9 +198,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months){
+    public ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months, List<Long> projectPeriodIds){
 
-        projectRepository.deleteProjectEntries(ids, months);
+        projectRepository.deleteProjectEntries(ids, months, projectPeriodIds);
         userSponsorRepository.deleteUserSponsorNotExistOnPivot();
         appPlatformRepository.deleteAppPlatformNotExistOnPivot();
         techPlatformRepository.deleteTechPlatformNotExistOnPivot();
@@ -317,7 +318,16 @@ public class ProjectServiceImpl implements ProjectService {
             KpiHandler.addDataResponse(type, projectRepository.getCountProject(period.getId(), month, category.get(type), type));
         }
 
-        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), month));
+        ArrayList<String> categoryValueForQueryTotal = new ArrayList<>(category.values());
+        ArrayList<String> typeValueForQueryTotal = new ArrayList<>((category.keySet()));
+
+        categoryValueForQueryTotal.replaceAll(String::toLowerCase);
+//        typeValueForQueryTotal.replaceAll(String::toLowerCase);
+//
+//        typeValueForQueryTotal.set(typeValueForQueryTotal.indexOf("insiden"), "%");
+//        typeValueForQueryTotal.replaceAll(s -> "%" + s + "%");
+
+        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), month, categoryValueForQueryTotal));
 
         return KpiHandler.generateResponse("Success", HttpStatus.OK);
 
