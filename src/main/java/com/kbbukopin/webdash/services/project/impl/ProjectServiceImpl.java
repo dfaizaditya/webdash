@@ -83,6 +83,13 @@ public class ProjectServiceImpl implements ProjectService {
                 projects.getTotalPages(), projects.isLast());
     }
 
+    public ResponseEntity<Object> getPinnedProjects() {
+        List<Project> projects = projectRepository.findAll();
+        // Get only the first 10 projects
+        List<Project> sublistProjects = projects.subList(0, Math.min(10, projects.size()));
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, sublistProjects);
+    }
+
     @Override
     public ResponseEntity<Object> getProjectByIdAndMonthAndYear(Long id, String month, Long year) {
         Period period = getPeriodByYear(year);

@@ -33,4 +33,7 @@ public interface ProjectService {
     ResponseEntity<Object> getEvidenceKpi(Long year, String month);
 
     ByteArrayInputStream load(Long year, String month);
+
+    ResponseEntity<Object> getPinnedProjects();
+
 }
