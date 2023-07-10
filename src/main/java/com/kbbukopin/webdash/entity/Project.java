@@ -30,6 +30,7 @@ public class Project extends DateAudit{
   @Column(name = "month")
   private String month;
 
+  @Id
   @ManyToOne
   @JoinColumn(name = "period_id")
   private Period period;
@@ -49,7 +50,8 @@ public class Project extends DateAudit{
   @JoinTable(name = "project_user_sponsor",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
-                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+                  @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "user_sponsor_id"))
   private List<UserSponsor> userSponsor;
@@ -60,7 +62,8 @@ public class Project extends DateAudit{
   @JoinTable(name = "project_app_platform",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
-                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+                  @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "app_platform_id"))
   private List<AppPlatform> appPlatform;
@@ -71,7 +74,8 @@ public class Project extends DateAudit{
   @JoinTable(name = "project_tech_platform",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
-                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+                  @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "tech_platform_id"))
   private List<TechPlatform> techPlatform;
@@ -82,7 +86,8 @@ public class Project extends DateAudit{
   @JoinTable(name = "project_pic",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
-                  @JoinColumn(name = "project_month", referencedColumnName = "month")
+                  @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "pic_id"))
   private List<Pic> pic;

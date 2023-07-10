@@ -6,4 +6,5 @@ public class ProjectId implements Serializable {
 
     private long id;
     private String month;
+    private long period;
 }

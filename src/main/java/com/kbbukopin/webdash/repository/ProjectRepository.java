@@ -14,25 +14,38 @@ import com.kbbukopin.webdash.entity.Project;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query(value = "SELECT p FROM Project p WHERE " +
-                    "p.id = :id AND p.month = :month")
-    Optional<Project> getProjectByIdAndMonth(@Param("id") Long id,
-                                    @Param("month") String month);
+            "p.id = :id AND " +
+            "p.month = :month AND " +
+            "p.period.id = :period_id")
+    Optional<Project> getProjectByIdAndMonthAndPeriodId(@Param("id") Long id,
+                                                        @Param("month") String month,
+                                                        @Param("period_id") Long period_id);
 
     @Query(value = "SELECT EXISTS(SELECT FROM project p " +
-            "WHERE p.id = :id AND p.month = :month)", nativeQuery = true)
+            "WHERE p.id = :id AND " +
+            "p.month = :month AND " +
+            "p.period_id = :period_id)", nativeQuery = true)
     Boolean existsByIdAndMonth(@Param("id") Long id,
-                       @Param("month") String month);
+                       @Param("month") String month,
+                       @Param("period_id") Long period_id);
 
     @Modifying
     @Query(value = "DELETE FROM Project p WHERE " +
-            "p.id = :id AND p.month = :month")
-    void deleteByIdAndMonth(@Param("id") Long id,
-                            @Param("month") String month);
+            "p.id = :id AND " +
+            "p.month = :month AND " +
+            "p.period.id = :period_id")
+    void deleteByIdAndMonthAndPeriodId(@Param("id") Long id,
+                                       @Param("month") String month,
+                                       @Param("period_id") Long period_id);
 
     @Modifying
-    @Query(value = "DELETE FROM Project p WHERE p.id IN :ids AND p.month IN :months")
+    @Query(value = "DELETE FROM Project p WHERE " +
+            "p.id IN :ids AND " +
+            "p.month IN :months AND " +
+            "p.period.id IN :projectPeriodIds")
     void deleteProjectEntries(@Param("ids") Iterable<Long> ids,
-                              @Param("months") Iterable<String> months);
+                              @Param("months") Iterable<String> months,
+                              @Param("projectPeriodIds") Iterable<Long> projectPeriodIds);
 
     @Query(value = "SELECT p.type FROM Project p WHERE " +
             "p.period_id = :period_id AND " +
@@ -89,9 +102,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS selesai_cepat, " +
             "COALESCE(SUM(CASE WHEN LOWER(status) LIKE 'rollout/solved' AND lower(info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS selesai_overdue " +
             "FROM project " +
-            "WHERE month = :month AND period_id = :period_id) as a " +
+            "WHERE month = :month AND period_id = :period_id AND LOWER(category) IN :categories) as a " +
             "GROUP BY a.total_project, a.total_selesai, a.selesai_cepat, a.selesai_overdue", nativeQuery = true)
     LinkedMap<String, String> getTotalProject(@Param("period_id") Long period_id,
-                                              @Param("month") String month);
+                                              @Param("month") String month,
+                                              @Param("categories") Iterable<String> categories);
 
 }

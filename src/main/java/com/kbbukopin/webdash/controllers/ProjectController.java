@@ -53,18 +53,20 @@ public class ProjectController {
 		return projectService.getAllProjects(page, size);
 	}
 
-	@GetMapping("/{id}/{month}")
-	public ResponseEntity<Object> getProjectByIdandMonth(
+	@GetMapping("/{id}/{month}/{year}")
+	public ResponseEntity<Object> getProjectByIdAndMonthAndYear(
 			@PathVariable(name = "id") Long id,
-			@PathVariable(name = "month") String month) {
-		return projectService.getProjectByIdAndMonth(id, month);
+			@PathVariable(name = "month") String month,
+			@PathVariable(name = "year") Long year) {
+		return projectService.getProjectByIdAndMonthAndYear(id, month, year);
 	}
 	
-	@PutMapping("/{id}/{month}")
+	@PutMapping("/{id}/{month}/{year}")
 	public ResponseEntity<Object> updateProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month,
+												@PathVariable(name = "year") Long year,
 												@Valid @RequestBody Project project) {
-		return projectService.updateProject(id, month, project);
+		return projectService.updateProject(id, month, year, project);
 	}
 
 	@PostMapping("/create")
@@ -72,10 +74,11 @@ public class ProjectController {
 		return projectService.createProject(project);
 	}
 
-	@DeleteMapping("/{id}/{month}")
+	@DeleteMapping("/{id}/{month}/{year}")
 	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id,
-												@PathVariable(name = "month") String month) {
-		return projectService.deleteProject(id, month);
+												@PathVariable(name = "month") String month,
+												@PathVariable(name = "year") Long year) {
+		return projectService.deleteProject(id, month, year);
 	}
 
 	@DeleteMapping("/deleteMultiple")
@@ -87,8 +90,11 @@ public class ProjectController {
 			List<String> months = projects.stream()
 					.map(Project::getMonth)
 					.collect(Collectors.toList());
+			List<Long> projectPeriodIds = projects.stream()
+					.map(project -> project.getPeriod().getId())
+					.collect(Collectors.toList());
 
-			return projectService.deleteMultipleProjects(ids, months);
+			return projectService.deleteMultipleProjects(ids, months, projectPeriodIds);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete data");
 		}
