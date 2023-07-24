@@ -45,7 +45,7 @@ public class Project extends DateAudit{
   private String name;
 
   @Column(name = "category_project")
-  private String category_project;
+  private String categoryProject;
 
 //  @Column(name = "user_sponsor")
 //  private String userSponsor;

@@ -140,11 +140,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
 
     @Query(value="SELECT " +
-            "COALESCE(SUM(CASE WHEN LOWER(p.info1) NOT LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) AS \"Not Done\", " +
             "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS \"Overdue\", " +
             "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) AS \"On Time\", " +
             "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", " +
-            "COALESCE(SUM(1), 0) as \"Total\" " +
+            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as \"Total\" " +
                 "FROM (SELECT DISTINCT ON (p1.id) p1.* " +
                     "FROM project p1 WHERE " +
                     "p1.period_id = 1 AND " +
@@ -170,10 +169,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                                              @Param("category") String category,
                                              @Param("type") String type);
 
-    @Query(value="SELECT a.total_project as \"Total Project\", a.total_ontime as \"Total Ontime\", a.selesai_cepat as \"Selesai Cepat\", a.selesai_overdue as \"Selesai Overdue\", CAST(SUM(CASE WHEN a.total_project = 0 THEN 0 ELSE (((CAST(a.total_ontime AS FLOAT)/a.total_project)*1)+((CAST(a.selesai_cepat AS FLOAT)/a.total_project)*:average_ahead)-((CAST(a.selesai_overdue AS FLOAT)/a.total_project)*:average_overdue))*100 END) AS NUMERIC(4,0)) as \"KPI\" " +
+    @Query(value="SELECT a.total_project as \"Total Project\", a.total_ontime as \"Total Ontime\", a.selesai_cepat as \"Selesai Cepat\", a.selesai_overdue as \"Selesai Overdue\", CAST(SUM(CASE WHEN a.total_project = 0 THEN 0 ELSE (((CAST(a.total_ontime AS FLOAT)/a.total_project)*1)+((CAST(a.selesai_cepat AS FLOAT)/a.total_project)*:average_ahead)+((CAST(a.selesai_overdue AS FLOAT)/a.total_project)*:average_overdue))*100 END) AS NUMERIC(4,1)) as \"KPI\" " +
             "FROM " +
                 "(SELECT " +
-                    "COALESCE(SUM(1), 0) as total_project, " +
+                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as total_project, " +
                     "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) as total_ontime,  " +
                     "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS selesai_cepat, " +
                     "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS selesai_overdue " +

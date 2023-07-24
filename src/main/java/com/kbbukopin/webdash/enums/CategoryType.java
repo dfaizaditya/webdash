@@ -1,8 +1,8 @@
 package com.kbbukopin.webdash.enums;
 
 public enum CategoryType {
-    INSIDEN("Insiden"),
-    PROYEK("Proyek");
+    PROYEK("Proyek"),
+    INSIDEN("Insiden");
 
     private final String name;
 
