@@ -137,24 +137,48 @@ public class ProjectController {
 	@GetMapping("/enums")
     public LinkedMap<String, Object> getAllEnums() {
 		LinkedMap<String, Object> result = new LinkedMap<>();
-        
-        // Get all unit names from the Unit enum
-        List<String> unitType = Arrays.stream(UnitType.values())
-                .map(UnitType::getName)
-                .collect(Collectors.toList());
-        result.put("unitType", unitType);
-        
-        // Get all category names from the Category enum
-        List<String> categoryType = Arrays.stream(CategoryType.values())
-                .map(CategoryType::getName)
-                .collect(Collectors.toList());
-        result.put("categoryType", categoryType);
+
+		// Get all unit names from the Unit enum
+		List<String> unitType = Arrays.stream(UnitType.values())
+				.map(UnitType::getName)
+				.collect(Collectors.toList());
+		result.put("unitType", unitType);
+
+		// Get all category names from the Category enum
+		List<String> categoryType = Arrays.stream(CategoryType.values())
+				.map(CategoryType::getName)
+				.collect(Collectors.toList());
+		result.put("categoryType", categoryType);
+
+		// Get all category project names from the Category Project enum
+		List<String> categoryProjectType = Arrays.stream(CategoryProjectType.values())
+				.map(CategoryProjectType::getName)
+				.collect(Collectors.toList());
+		result.put("categoryProjectType", categoryProjectType);
 
 		// Get all project type names from the ProjectType enum
         List<String> projectType = Arrays.stream(ProjectType.values())
                 .map(ProjectType::getName)
                 .collect(Collectors.toList());
         result.put("projectType", projectType);
+
+		// Get all project type names from the StatusProjectType enum
+		List<String> statusProjectType = Arrays.stream(StatusProjectType.values())
+				.map(StatusProjectType::getName)
+				.collect(Collectors.toList());
+		result.put("statusProjectType", statusProjectType);
+
+		// Get all project type names from the StatusIncidentType enum
+		List<String> statusIncidentType = Arrays.stream(StatusIncidentType.values())
+				.map(StatusIncidentType::getName)
+				.collect(Collectors.toList());
+		result.put("statusIncidentType", statusIncidentType);
+
+		// Get all project type names from the StatusIncidentType enum
+		List<String> info1Type = Arrays.stream(Info1Type.values())
+				.map(Info1Type::getName)
+				.collect(Collectors.toList());
+		result.put("info1Type", info1Type);
 
 		// Get all status option 1 names from the StatusOptions1 enum
 		List<String> statusOptions1 = Arrays.stream(StatusOptions1.values())
