@@ -44,6 +44,9 @@ public class Project extends DateAudit{
   @Column(name = "name")
   private String name;
 
+  @Column(name = "category_project")
+  private String category_project;
+
 //  @Column(name = "user_sponsor")
 //  private String userSponsor;
   @ManyToMany(cascade = CascadeType.ALL)
@@ -99,6 +102,10 @@ public class Project extends DateAudit{
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
   @Column(name = "due_date")
   private LocalDate dueDate;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
+  @Column(name = "finished_date")
+  private LocalDate finishedDate;
 
   @Column(name = "type")
   private String type;
