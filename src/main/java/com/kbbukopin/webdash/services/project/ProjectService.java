@@ -28,6 +28,14 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectStat(Long year, String month);
 
+    ResponseEntity<Object> getProjectStats(Long year, String month);
+
+    ResponseEntity<Object> getProjectCompletionStat(Long year, String month);
+
+    ResponseEntity<Object> getProjectUnitStat(Long year, String month);
+
+    ResponseEntity<Object> getProjectTypeStat(Long year, String month);
+
     ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String type, String category);
 
     ResponseEntity<Object> getEvidenceKpi(Long year, String month);
