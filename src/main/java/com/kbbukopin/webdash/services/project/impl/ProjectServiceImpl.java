@@ -67,7 +67,16 @@ public class ProjectServiceImpl implements ProjectService {
     @Autowired
     private PeriodServiceImpl periodServiceImpl;
 
+    @Autowired
+    private DayOffRepository dayOffRepository;
+
     public Gson gson = new Gson();
+
+    String[] daftarBulan = {
+            "Januari", "Februari", "Maret", "April",
+            "Mei", "Juni", "Juli", "Agustus",
+            "September", "Oktober", "November", "Desember"
+    };
 
     @Override
     public PagedResponse<Project> getAllProjects(int page, int size) {
@@ -126,6 +135,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .pic(newProject.getPic())
                     .startDate(newProject.getStartDate())
                     .dueDate(newProject.getDueDate())
+                    .finishedDate(newProject.getFinishedDate())
                     .type(newProject.getType())
                     .progress(newProject.getProgress())
                     .status(newProject.getStatus())
@@ -409,6 +419,28 @@ public class ProjectServiceImpl implements ProjectService {
         Period period = this.getPeriodByYear(year);
         month = monthParamChangerIfNull(month);
 
+        List<String> rangeMonth = new ArrayList<>();
+        int index=-1;
+
+        for (int i = 0; i < daftarBulan.length; i++) {
+            if(i == 6) {
+                rangeMonth.clear();
+            }
+
+            rangeMonth.add(daftarBulan[i]);
+
+            if (daftarBulan[i].equals(month)) {
+                index = i;
+
+                // Keluar dari perulangan jika bulan ditemukan.
+                break;
+            }
+        }
+
+        if(index == -1) {
+            return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
+        }
+
         String[] types = {"In House", "Insiden", "Join Dev", "Outsource"};
         LinkedMap<String, String> category = new LinkedMap<>();
 
@@ -420,8 +452,12 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
+//        for (String type : types) {
+//            KpiHandler.addDataResponse(type, projectRepository.getCountProject(period.getId(), month, category.get(type), type));
+//        }
+
         for (String type : types) {
-            KpiHandler.addDataResponse(type, projectRepository.getCountProject(period.getId(), month, category.get(type), type));
+            KpiHandler.addDataResponse(type, projectRepository.getCountProject(period.getId(), rangeMonth, category.get(type), type));
         }
 
         ArrayList<String> categoryValueForQueryTotal = new ArrayList<>(category.values());
@@ -433,10 +469,79 @@ public class ProjectServiceImpl implements ProjectService {
 //        typeValueForQueryTotal.set(typeValueForQueryTotal.indexOf("insiden"), "%");
 //        typeValueForQueryTotal.replaceAll(s -> "%" + s + "%");
 
-        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), month, categoryValueForQueryTotal));
+        List<DayOff> listDayOff = dayOffRepository.getDayOffByYear(year);
 
+        List<Project> projectsAhead = projectRepository.getFinishedProject(period.getId(), rangeMonth, "ahead");
+        List<Project> projectsOverdue = projectRepository.getFinishedProject(period.getId(), rangeMonth, "overdue");
+
+        List<Double> projectAheadMandaysCalculated = new ArrayList<>();
+        List<Double> projectOverdueMandaysCalculated = new ArrayList<>();
+
+        for(Project project : projectsAhead){
+            projectAheadMandaysCalculated.add(
+                    calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
+                            calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff)
+            );
+
+            System.out.println(project.getStartDate());
+            System.out.println(project.getDueDate());
+            System.out.println(project.getFinishedDate());
+            System.out.println("scheduled mandays Ahead: "+calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+            System.out.println("actualed mandays Ahead: "+calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+        }
+        for(Project project : projectsOverdue){
+            projectOverdueMandaysCalculated.add(
+                    calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
+                            calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff)
+            );
+            System.out.println(project.getStartDate());
+            System.out.println(project.getDueDate());
+            System.out.println(project.getFinishedDate());
+            System.out.println("scheduled mandays Overdue: "+calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+            System.out.println("actualed mandays Overdue: "+calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+        }
+
+        Double averageAhead = Math.round(calculateAverage(projectAheadMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
+        Double averageOverdue = Math.round(calculateAverage(projectOverdueMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
+
+        System.out.println("average ahead : "+averageAhead);
+        System.out.println("average overdue : "+averageOverdue);
+//        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), month, categoryValueForQueryTotal, averageAhead, averageOverdue));
+        KpiHandler.addDataResponse("Total", projectRepository.getTotalProject(period.getId(), rangeMonth, categoryValueForQueryTotal, averageAhead, averageOverdue));
+        System.out.println("=======================================");
         return KpiHandler.generateResponse("Success", HttpStatus.OK);
 
+    }
+
+    public static double calculateMandays(LocalDate startDate, LocalDate endDate, List<DayOff> listDayOff) {
+        double rangeDays = 0;
+        LocalDate tempDate = startDate;
+
+        List<LocalDate> dayOffs = new ArrayList<>();
+        for(DayOff dayOff : listDayOff){
+            dayOffs.add(dayOff.getDate());
+        }
+
+        while (tempDate.isBefore(endDate)) {
+            if (!tempDate.getDayOfWeek().name().equals("SATURDAY") &&
+                    !tempDate.getDayOfWeek().name().equals("SUNDAY") &&
+                    !dayOffs.contains(tempDate)) {
+                rangeDays++;
+            }
+            tempDate = tempDate.plusDays(1);
+        }
+        if(!dayOffs.contains(tempDate)) {
+            rangeDays++;
+        }
+        return rangeDays;
+    }
+
+    public double calculateAverage(List<Double> numbers) {
+        double sum = 0;
+        for (Double number : numbers) {
+            sum += number;
+        }
+        return sum / numbers.size();
     }
 
     @Override
@@ -652,12 +757,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     private String monthParamChangerIfNull(String month) {
         if(month == null || month.equalsIgnoreCase("")) {
-
-            String[] daftarBulan = {
-                    "Januari", "Februari", "Maret", "April",
-                    "Mei", "Juni", "Juli", "Agustus",
-                    "September", "Oktober", "November", "Desember"
-            };
 
             Date date = new Date();
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
