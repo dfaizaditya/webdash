@@ -38,12 +38,14 @@ import com.google.gson.JsonObject;
 import com.kbbukopin.webdash.dto.PagedResponse;
 import com.kbbukopin.webdash.dto.ResponseHandler;
 import com.kbbukopin.webdash.dto.StatsHandler;
+import com.kbbukopin.webdash.dto.TechPlatformDTO;
 import com.kbbukopin.webdash.dto.StatHandler;
 import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
 import com.kbbukopin.webdash.helper.ExcelHelper;
 import com.kbbukopin.webdash.services.project.ProjectService;
 import com.kbbukopin.webdash.utils.AppUtils;
 
+import javax.persistence.Tuple;
 import javax.transaction.Transactional;
 
 @Service
@@ -392,6 +394,60 @@ public class ProjectServiceImpl implements ProjectService {
         });
 
         return StatHandler.generateResponse("Success", HttpStatus.OK, clComplete.size(), listOfComplete);
+    }
+
+    @Override
+    public ResponseEntity<Object> getProjectCategoryStat(Long year, String month) {
+
+        Period period = this.getPeriodByYear(year);
+
+        List<String> clComplete = projectRepository.getColumnCategoryList(period.getId(), month);
+        List<Object> listOfComplete = new ArrayList<>();
+        Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
+  
+        entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
+
+        entryStreamOfComplete.forEach(entry -> {
+            JsonObject inputString = createJsonStats(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
+            Object myjson = gson.fromJson(inputString, Object.class);
+            listOfComplete.add(myjson);
+        });
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, clComplete.size(), listOfComplete);
+    }
+
+    @Override
+    public ResponseEntity<Object> getProjectAppPlatformStat(Long year, String month) {
+        Period period = this.getPeriodByYear(year);
+
+        List<Object[]> results = projectRepository.getColumnAppPlatformList(period.getId(), month);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        for (Object[] result : results) {
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", result[0]);
+            json.put("value", result[1]);
+            jsonList.add(json);
+        }
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
+    }
+    
+    @Override
+    public ResponseEntity<Object> getProjectTechPlatformStat(Long year, String month) {
+        Period period = this.getPeriodByYear(year);
+
+        List<Object[]> results = projectRepository.getColumnTechPlatformList(period.getId(), month);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        for (Object[] result : results) {
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", result[0]);
+            json.put("value", result[1]);
+            jsonList.add(json);
+        }
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
     }
 
     public Map<String, Long> mapCount(List<String> mylist) {
