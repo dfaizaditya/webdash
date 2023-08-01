@@ -130,6 +130,24 @@ public class ProjectController {
 		return projectService.getProjectTypeStat(year, month);
 	}
 
+	@GetMapping("/statistics/category")
+	public ResponseEntity<Object> getProjectCategoryStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectCategoryStat(year, month);
+	}
+
+	@GetMapping("/statistics/appplatform")
+	public ResponseEntity<Object> getProjectAppPlatformStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectAppPlatformStat(year, month);
+	}
+
+	@GetMapping("/statistics/techplatform")
+	public ResponseEntity<Object> getProjectTechPlatformStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectTechPlatformStat(year, month);
+	}
+
 
 	@GetMapping("/evidence")
 	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long year,
