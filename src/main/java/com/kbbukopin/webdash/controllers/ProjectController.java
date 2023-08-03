@@ -53,20 +53,22 @@ public class ProjectController {
 		return projectService.getAllProjects(page, size);
 	}
 
-	@GetMapping("/{id}/{month}/{year}")
-	public ResponseEntity<Object> getProjectByIdAndMonthAndYear(
+	@GetMapping("/{id}/{month}/{unit}/{year}")
+	public ResponseEntity<Object> getProjectByPrimaryKey(
 			@PathVariable(name = "id") Long id,
 			@PathVariable(name = "month") String month,
+			@PathVariable(name = "unit") String unit,
 			@PathVariable(name = "year") Long year) {
-		return projectService.getProjectByIdAndMonthAndYear(id, month, year);
+		return projectService.getProjectByPrimaryKey(id, month, unit, year);
 	}
 	
 	@PutMapping("/{id}/{month}/{year}")
 	public ResponseEntity<Object> updateProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month,
+												@PathVariable(name = "unit") String unit,
 												@PathVariable(name = "year") Long year,
 												@Valid @RequestBody Project project) {
-		return projectService.updateProject(id, month, year, project);
+		return projectService.updateProject(id, month, unit, year, project);
 	}
 
 	@PostMapping("/create")
@@ -77,8 +79,9 @@ public class ProjectController {
 	@DeleteMapping("/{id}/{month}/{year}")
 	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month,
+												@PathVariable(name = "unit") String unit,
 												@PathVariable(name = "year") Long year) {
-		return projectService.deleteProject(id, month, year);
+		return projectService.deleteProject(id, month, unit, year);
 	}
 
 	@DeleteMapping("/deleteMultiple")
@@ -90,11 +93,14 @@ public class ProjectController {
 			List<String> months = projects.stream()
 					.map(Project::getMonth)
 					.collect(Collectors.toList());
+			List<String> units = projects.stream()
+					.map(Project::getUnit)
+					.collect(Collectors.toList());
 			List<Long> projectPeriodIds = projects.stream()
 					.map(project -> project.getPeriod().getId())
 					.collect(Collectors.toList());
 
-			return projectService.deleteMultipleProjects(ids, months, projectPeriodIds);
+			return projectService.deleteMultipleProjects(ids, months, units, projectPeriodIds);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete data");
 		}
@@ -223,18 +229,6 @@ public class ProjectController {
 				.collect(Collectors.toList());
 		result.put("info1Type", info1Type);
 
-		// Get all status option 1 names from the StatusOptions1 enum
-		List<String> statusOptions1 = Arrays.stream(StatusOptions1.values())
-				.map(StatusOptions1::getName)
-				.collect(Collectors.toList());
-		result.put("statusOptions1", statusOptions1);
-
-		// Get all status option 2 names from the StatusOptions2 enum
-		List<String> statusOptions2 = Arrays.stream(StatusOptions2.values())
-				.map(StatusOptions2::getName)
-				.collect(Collectors.toList());
-		result.put("statusOptions2", statusOptions2);
-
 		// Get all change type names from the ChangeType enum
 		List<String> changeType = Arrays.stream(ChangeType.values())
 				.map(ChangeType::getName)
@@ -259,28 +253,29 @@ public class ProjectController {
   	public ResponseEntity<Resource> getFile(@RequestParam(required = false) Long year,
 											@RequestParam(required = false) String month) {
 
-	String filename = "Projects ";
+		String filename = "Projects ";
 
-	if(month==null || month.equals("")){
-		filename += year+".xlsx";
-	} else {
-		filename += month+"-"+year+".xlsx";
+		if(month==null || month.equals("")){
+			filename += year+".xlsx";
+		} else {
+			filename += month+"-"+year+".xlsx";
+		}
+
+		InputStreamResource file = new InputStreamResource(projectService.load(year, month));
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+			.contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+			.body(file);
 	}
 
-    InputStreamResource file = new InputStreamResource(projectService.load(year, month));
-
-    return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-        .body(file);
-  }
-
 	@PostMapping(path = "/upload")
-    public  ResponseEntity<?>  importDataFromExcelToDb(@RequestParam(required = true) Long period_id,
+	public  ResponseEntity<?>  importDataFromExcelToDb(@RequestParam(required = true) Long period_id,
 													   @RequestPart(required = true)List<MultipartFile> files){
-        String message = "";
+		String message = "";
 		projectService.importToDb(period_id, files);
-        message = "Uploaded the file successfully";
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
-    }
+		message = "Uploaded the file successfully";
+		return projectService.importToDb(period_id, files);
+	//        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
+	}
 }

@@ -14,17 +14,17 @@ public interface ProjectService {
 
     PagedResponse<Project> getAllProjects(int page, int size);
 
-    ResponseEntity<Object> getProjectByIdAndMonthAndYear(Long id, String month, Long year);
+    ResponseEntity<Object> getProjectByPrimaryKey(Long id, String month, String unit, Long year);
 
     ResponseEntity<Object> createProject(Project newProject);
     
-    ResponseEntity<Object> updateProject(Long id, String month, Long year, Project newProject);
+    ResponseEntity<Object> updateProject(Long id, String month, String unit, Long year, Project newProject);
 
-    ResponseEntity<Object> deleteProject(Long id, String month, Long year);
+    ResponseEntity<Object> deleteProject(Long id, String month, String unit, Long year);
 
-    ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months, List<Long> projectPeriodIds);
+    ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months, List<String> units, List<Long> projectPeriodIds);
 
-    void importToDb(Long id_project, List<MultipartFile> multipleFiles);
+    ResponseEntity<Object> importToDb(Long id_project, List<MultipartFile> multipleFiles);
 
     ResponseEntity<Object> getProjectStat(Long year, String month);
 
