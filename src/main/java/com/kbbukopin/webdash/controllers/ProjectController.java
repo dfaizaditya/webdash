@@ -106,11 +106,54 @@ public class ProjectController {
 		}
 	}
 
-	@GetMapping("/statistics")
+	@GetMapping("/statistics2")
 	public ResponseEntity<Object> getProjectStat(@RequestParam(required = false) Long year,
 												 @RequestParam(required = false) String month) {
 		return projectService.getProjectStat(year, month);
 	}
+
+	@GetMapping("/statistics")
+	public ResponseEntity<Object> getProjectStats(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectStats(year, month);
+	}
+
+	@GetMapping("/statistics/completion")
+	public ResponseEntity<Object> getProjectCompletionStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectCompletionStat(year, month);
+	}
+
+	@GetMapping("/statistics/unit")
+	public ResponseEntity<Object> getProjectUnitStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectUnitStat(year, month);
+	}
+
+	@GetMapping("/statistics/type")
+	public ResponseEntity<Object> getProjectTypeStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectTypeStat(year, month);
+	}
+
+	@GetMapping("/statistics/category")
+	public ResponseEntity<Object> getProjectCategoryStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectCategoryStat(year, month);
+	}
+
+	@GetMapping("/statistics/appplatform")
+	public ResponseEntity<Object> getProjectAppPlatformStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectAppPlatformStat(year, month);
+	}
+
+	@GetMapping("/statistics/techplatform")
+	public ResponseEntity<Object> getProjectTechPlatformStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectTechPlatformStat(year, month);
+	}
+
 
 	@GetMapping("/evidence")
 	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long year,

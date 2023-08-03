@@ -3,12 +3,15 @@ package com.kbbukopin.webdash.repository;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.Tuple;
+
 import org.apache.commons.collections4.map.LinkedMap;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kbbukopin.webdash.dto.TechPlatformDTO;
 import com.kbbukopin.webdash.entity.Project;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
@@ -56,22 +59,42 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                               @Param("projectPeriodIds") Iterable<Long> projectPeriodIds);
 
     @Query(value = "SELECT p.type FROM Project p WHERE " +
-            "p.period_id = :period_id AND " +
-            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
+                    "p.period_id = :period_id AND " +
+                    "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnTypeList(@Param("period_id") Long period_id,
-                                   @Param("month") String month);
+                    @Param("month") String month);
 
     @Query(value = "SELECT p.info1 FROM Project p WHERE " +
-            "p.period_id = :period_id AND " +
-            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
+                    "p.period_id = :period_id AND " +
+                    "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnCompleteList(@Param("period_id") Long period_id,
-                                       @Param("month") String month);
+                    @Param("month") String month);
 
     @Query(value = "SELECT p.unit FROM Project p WHERE " +
-            "p.period_id = :period_id AND " +
-            "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
+                    "p.period_id = :period_id AND " +
+                    "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
     List<String> getColumnUnitList(@Param("period_id") Long period_id,
-                                   @Param("month") String month);
+                    @Param("month") String month);
+
+    @Query(value = "SELECT p.category FROM Project p WHERE " +
+                    "p.period_id = :period_id AND " +
+                    "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
+    List<String> getColumnCategoryList(@Param("period_id") Long period_id,
+                    @Param("month") String month);
+
+    @Query(value = "SELECT ap.name AS name, COUNT(ptp.project_id) AS project_count FROM app_platform ap " +
+                    "JOIN project_app_platform ptp ON ap.id = ptp.app_platform_id " +
+                    "AND ptp.project_period_id = :period_id " +
+                    "AND (:month is null or ptp.project_month like '%'||:month||'%') " +
+                    "GROUP BY ap.name ORDER BY project_count", nativeQuery = true)
+    List<Object[]> getColumnAppPlatformList(@Param("period_id") Long period_id, @Param("month") String month);
+
+    @Query(value = "SELECT t.name AS name, COUNT(ptp.project_id) AS project_count FROM tech_platform t " +
+                    "JOIN project_tech_platform ptp ON t.id = ptp.tech_platform_id " +
+                    "AND ptp.project_period_id = :period_id " +
+                    "AND (:month is null or ptp.project_month like '%'||:month||'%') " +
+                    "GROUP BY t.name ORDER BY project_count", nativeQuery = true)
+    List<Object[]> getColumnTechPlatformList(@Param("period_id") Long period_id, @Param("month") String month);
 
     @Query(value = "SELECT p.* FROM Project p WHERE " +
             "(:period_id IS NULL OR p.period_id = :period_id) AND " +
