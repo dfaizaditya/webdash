@@ -17,13 +17,6 @@ public interface UserSponsorRepository extends JpaRepository<UserSponsor, Long> 
             "WHERE us.name = :name", nativeQuery = true)
     UserSponsor getByName(@Param("name") String name);
 
-    @Query(value = "SELECT EXISTS(SELECT FROM project_user_sponsor pus " +
-            "WHERE pus.user_sponsor_id = :user_sponsor_id " +
-            "AND((pus.project_id != :project_id) OR (pus.project_id = :project_id AND pus.project_month != :project_month)))", nativeQuery = true)
-    Boolean existProjectsByUserSponsorIdExceptItself(@Param("project_id") Long project_id,
-                                                     @Param("project_month") String project_month,
-                                                     @Param("user_sponsor_id") Long user_sponsor_id);
-
     @Modifying
     @Query(value = "DELETE FROM user_sponsor us WHERE id NOT IN " +
             "(SELECT pus.user_sponsor_id FROM project_user_sponsor pus)", nativeQuery = true)

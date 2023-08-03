@@ -285,5 +285,4 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                         @Param("categories") Iterable<String> categories,
                         @Param("average_ahead") Double average_ahead,
                         @Param("average_overdue") Double average_overdue);
-
 }

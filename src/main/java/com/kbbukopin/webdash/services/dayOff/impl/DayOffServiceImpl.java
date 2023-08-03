@@ -16,8 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -27,6 +28,14 @@ import java.util.List;
 public class DayOffServiceImpl implements DayOffService {
     @Autowired
     private DayOffRepository dayOffRepository;
+
+    @Override
+    public ResponseEntity<Object> getAllDayOff() {
+
+        List<DayOff> dayOffList = dayOffRepository.getAllDayOff();
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, dayOffList);
+    }
 
     @Override
     public ResponseEntity<Object> importToDb(List<MultipartFile> multipleFiles) {
@@ -40,7 +49,7 @@ public class DayOffServiceImpl implements DayOffService {
 
 //                    System.out.print(getNumberOfNonEmptyCells(sheet, 0));
                     // looping----------------------------------------------------------------
-                    for (int rowIndex = 0; rowIndex < getNumberOfNonEmptyCells(sheet, 0) - 1; rowIndex++) {
+                    for (int rowIndex = 1; rowIndex < getNumberOfNonEmptyCells(sheet, 0) - 1; rowIndex++) {
 
                         XSSFRow row = sheet.getRow(rowIndex + 1);
                         // datatoString skip header
@@ -115,5 +124,19 @@ public class DayOffServiceImpl implements DayOffService {
             }
         }
         return numOfNonEmptyCells;
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<Object> deleteMultipleDayOff(List<LocalDate> dates) {
+        dayOffRepository.deleteDayOffEntries(dates);
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
+    }
+
+    @Override
+    public ByteArrayInputStream getTemplateExcel() {
+        ByteArrayInputStream in = ExcelHelper.templateExcelDayOff();
+        return in;
     }
 }
