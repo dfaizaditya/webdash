@@ -136,6 +136,24 @@ public class ProjectController {
 		return projectService.getProjectCategoryStat(year, month);
 	}
 
+	@GetMapping("/statistics/documentation")
+	public ResponseEntity<Object> getProjectDocumentationStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectDocumentationStat(year, month);
+	}
+
+	@GetMapping("/statistics/rollout")
+	public ResponseEntity<Object> getProjectRolloutStatusStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectRolloutStatusStat(year, month);
+	}
+
+	@GetMapping("/statistics/rollout-unit")
+	public ResponseEntity<Object> getProjectRolloutUnitStat(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getProjectRolloutUnitStat(year, month);
+	}
+
 	@GetMapping("/statistics/appplatform")
 	public ResponseEntity<Object> getProjectAppPlatformStat(@RequestParam(required = false) Long year,
 												 @RequestParam(required = false) String month) {

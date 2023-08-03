@@ -74,6 +74,30 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
         List<String> getColumnCategoryList(@Param("period_id") Long period_id,
                         @Param("month") String month);
 
+        @Query(value = "SELECT p.documentation FROM Project p WHERE " +
+                        "p.period_id = :period_id AND " +
+                        "(:month is null or p.month like '%'||:month||'%')", nativeQuery = true)
+        List<String> getColumnDocumentationList(@Param("period_id") Long period_id,
+                        @Param("month") String month);
+
+        @Query(value = "SELECT p.type, COUNT(*) AS count " +
+                        "FROM Project p " +
+                        "WHERE p.period_id = :period_id AND " +
+                        "(:month is null or p.month like '%'||:month||'%') AND " +
+                        "p.status = 'Rollout/Solved' " +
+                        "GROUP BY p.type", nativeQuery = true)
+        List<Object[]> getRolloutStatusCounts(@Param("period_id") Long period_id,
+                        @Param("month") String month);
+
+        @Query(value = "SELECT p.unit, COUNT(*) AS count " +
+                        "FROM Project p " +
+                        "WHERE p.period_id = :period_id AND " +
+                        "(:month is null or p.month like '%'||:month||'%') AND " +
+                        "p.status = 'Rollout/Solved' " +
+                        "GROUP BY p.unit", nativeQuery = true)
+        List<Object[]> getRolloutUnitCounts(@Param("period_id") Long period_id,
+                        @Param("month") String month);
+
         @Query(value = "SELECT ap.name AS name, COUNT(ptp.project_id) AS project_count FROM app_platform ap " +
                         "JOIN project_app_platform ptp ON ap.id = ptp.app_platform_id " +
                         "AND ptp.project_period_id = :period_id " +
