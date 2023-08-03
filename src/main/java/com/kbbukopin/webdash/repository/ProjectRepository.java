@@ -16,35 +16,43 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query(value = "SELECT p FROM Project p WHERE " +
             "p.id = :id AND " +
             "p.month = :month AND " +
+            "p.unit = :unit AND " +
             "p.period.id = :period_id")
-    Optional<Project> getProjectByIdAndMonthAndPeriodId(@Param("id") Long id,
-                                                        @Param("month") String month,
-                                                        @Param("period_id") Long period_id);
+    Optional<Project> getProjectByPrimaryKey(@Param("id") Long id,
+                                            @Param("month") String month,
+                                            @Param("unit") String unit,
+                                            @Param("period_id") Long period_id);
 
     @Query(value = "SELECT EXISTS(SELECT FROM project p " +
             "WHERE p.id = :id AND " +
             "p.month = :month AND " +
+            "p.unit = :unit AND " +
             "p.period_id = :period_id)", nativeQuery = true)
-    Boolean existsByIdAndMonth(@Param("id") Long id,
-                       @Param("month") String month,
-                       @Param("period_id") Long period_id);
+    Boolean existsByPrimaryKey(@Param("id") Long id,
+                               @Param("month") String month,
+                               @Param("unit") String unit,
+                               @Param("period_id") Long period_id);
 
     @Modifying
     @Query(value = "DELETE FROM Project p WHERE " +
             "p.id = :id AND " +
             "p.month = :month AND " +
+            "p.unit = :unit AND " +
             "p.period.id = :period_id")
-    void deleteByIdAndMonthAndPeriodId(@Param("id") Long id,
-                                       @Param("month") String month,
-                                       @Param("period_id") Long period_id);
+    void deleteByPrimaryKey(@Param("id") Long id,
+                            @Param("month") String month,
+                            @Param("unit") String unit,
+                            @Param("period_id") Long period_id);
 
     @Modifying
     @Query(value = "DELETE FROM Project p WHERE " +
             "p.id IN :ids AND " +
             "p.month IN :months AND " +
+            "p.unit IN :units AND " +
             "p.period.id IN :projectPeriodIds")
     void deleteProjectEntries(@Param("ids") Iterable<Long> ids,
                               @Param("months") Iterable<String> months,
+                              @Param("units") Iterable<String> units,
                               @Param("projectPeriodIds") Iterable<Long> projectPeriodIds);
 
     @Query(value = "SELECT p.type FROM Project p WHERE " +
@@ -84,11 +92,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             @Param("category") String category);
 
     @Query(value = "SELECT p.* " +
-            "FROM (SELECT DISTINCT ON (p1.id) p1.* " +
+            "FROM (SELECT DISTINCT ON (p1.id, p1.unit, p1.info1) p1.* " +
                 "FROM project p1 WHERE " +
                 "p1.period_id = 1 AND " +
                 "p1.month IN (:rangeMonth) " +
-                "ORDER BY p1.id, CASE LOWER(p1.month) " +
+                "ORDER BY p1.id, p1.unit, p1.info1, CASE LOWER(p1.month) " +
                     "WHEN 'Januari' THEN 1 " +
                     "WHEN 'Februari' THEN 2 " +
                     "WHEN 'Maret' THEN 3 " +
@@ -104,12 +112,48 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                     "END DESC" +
             ") AS p " +
             "WHERE period_id = :period_id AND " +
-            "LOWER(info1) LIKE LOWER('%'||'Finished%'||:typeOfFinished||'%') " +
+            "LOWER(info1) LIKE LOWER('%'||'Finished%'||:typeOfFinished||'%') AND " +
+            "LOWER(p.category) LIKE ANY (ARRAY['%proyek%', '%insiden%']) AND " +
+            "LOWER(p.type) LIKE ANY (ARRAY['%in house%', 'join dev']) " +
             "ORDER BY p.updated_at DESC, p.created_at DESC", nativeQuery = true)
     List<Project> getFinishedProject(
             @Param("period_id") Long period_id,
             @Param("rangeMonth") Iterable<String> rangeMonth,
             @Param("typeOfFinished") String typeOfFinished);
+
+
+    @Query(value="SELECT " +
+            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS \"Overdue\", " +
+            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) AS \"On Time\", " +
+            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", " +
+            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as \"Total\" " +
+            "FROM (SELECT DISTINCT ON (p1.id, p1.unit, p1.info1) p1.* " +
+                "FROM project p1 WHERE " +
+                "p1.period_id = 1 AND " +
+                "p1.month IN (:rangeMonth) " +
+                "ORDER BY p1.id, p1.unit, p1.info1, CASE LOWER(p1.month) " +
+                    "WHEN 'Januari' THEN 1 " +
+                    "WHEN 'Februari' THEN 2 " +
+                    "WHEN 'Maret' THEN 3 " +
+                    "WHEN 'April' THEN 4 " +
+                    "WHEN 'Mei' THEN 5 " +
+                    "WHEN 'Juni' THEN 6 " +
+                    "WHEN 'Juli' THEN 7 " +
+                    "WHEN 'Agustus' THEN 8 " +
+                    "WHEN 'September' THEN 9 " +
+                    "WHEN 'Oktober' THEN 10 " +
+                    "WHEN 'November' THEN 11 " +
+                    "WHEN 'Desember' THEN 12 " +
+                    "END DESC" +
+                ") AS p " +
+            "WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND " +
+            "category = :category AND " +
+            "period_id = :period_id AND " +
+            "type NOT LIKE '%Outsource'", nativeQuery = true)
+    LinkedMap<String,String> getCountProject(@Param("period_id") Long period_id,
+                                             @Param("rangeMonth") Iterable<String> rangeMonth,
+                                             @Param("category") String category,
+                                             @Param("type") String type);
 
 //    @Query(value="SELECT " +
 //        "COALESCE(SUM(CASE WHEN LOWER(status) NOT LIKE 'rollout/solved' THEN 1 ELSE 0 END), 0) AS \"Not Done\", " +
@@ -138,70 +182,42 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 //                                              @Param("average_ahead") Double average_ahead,
 //                                              @Param("average_overdue") Double average_overdue);
 
-
-    @Query(value="SELECT " +
-            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS \"Overdue\", " +
-            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) AS \"On Time\", " +
-            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", " +
-            "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as \"Total\" " +
-                "FROM (SELECT DISTINCT ON (p1.id) p1.* " +
-                    "FROM project p1 WHERE " +
-                    "p1.period_id = 1 AND " +
-                    "p1.month IN (:rangeMonth) " +
-                    "ORDER BY p1.id, CASE LOWER(p1.month) " +
-                        "WHEN 'Januari' THEN 1 " +
-                        "WHEN 'Februari' THEN 2 " +
-                        "WHEN 'Maret' THEN 3 " +
-                        "WHEN 'April' THEN 4 " +
-                        "WHEN 'Mei' THEN 5 " +
-                        "WHEN 'Juni' THEN 6 " +
-                        "WHEN 'Juli' THEN 7 " +
-                        "WHEN 'Agustus' THEN 8 " +
-                        "WHEN 'September' THEN 9 " +
-                        "WHEN 'Oktober' THEN 10 " +
-                        "WHEN 'November' THEN 11 " +
-                        "WHEN 'Desember' THEN 12 " +
-                        "END DESC" +
-                ") AS p " +
-            "WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND category = :category AND period_id = :period_id", nativeQuery = true)
-    LinkedMap<String,String> getCountProject(@Param("period_id") Long period_id,
-                                             @Param("rangeMonth") Iterable<String> rangeMonth,
-                                             @Param("category") String category,
-                                             @Param("type") String type);
-
-    @Query(value="SELECT a.total_project as \"Total Project\", a.total_ontime as \"Total Ontime\", a.selesai_cepat as \"Selesai Cepat\", a.selesai_overdue as \"Selesai Overdue\", CAST(SUM(CASE WHEN a.total_project = 0 THEN 0 ELSE (((CAST(a.total_ontime AS FLOAT)/a.total_project)*1)+((CAST(a.selesai_cepat AS FLOAT)/a.total_project)*:average_ahead)+((CAST(a.selesai_overdue AS FLOAT)/a.total_project)*:average_overdue))*100 END) AS NUMERIC(4,1)) as \"KPI\" " +
-            "FROM " +
-                "(SELECT " +
-                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as total_project, " +
-                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) as total_ontime,  " +
-                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS selesai_cepat, " +
-                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS selesai_overdue " +
-                        "FROM (SELECT DISTINCT ON (p1.id) p1.* " +
-                            "FROM project p1 WHERE " +
-                            "p1.period_id = 1 AND " +
-                            "p1.month IN (:rangeMonth) " +
-                            "ORDER BY p1.id, CASE LOWER(p1.month) " +
-                                "WHEN 'Januari' THEN 1 " +
-                                "WHEN 'Februari' THEN 2 " +
-                                "WHEN 'Maret' THEN 3 " +
-                                "WHEN 'April' THEN 4 " +
-                                "WHEN 'Mei' THEN 5 " +
-                                "WHEN 'Juni' THEN 6 " +
-                                "WHEN 'Juli' THEN 7 " +
-                                "WHEN 'Agustus' THEN 8 " +
-                                "WHEN 'September' THEN 9 " +
-                                "WHEN 'Oktober' THEN 10 " +
-                                "WHEN 'November' THEN 11 " +
-                                "WHEN 'Desember' THEN 12 " +
-                                "END DESC" +
-                        ") AS p " +
-                    "WHERE p.period_id = :period_id AND LOWER(p.category) IN :categories" +
-                ") as a " +
-            "GROUP BY a.total_project, a.total_ontime, a.selesai_cepat, a.selesai_overdue", nativeQuery = true)
-    LinkedMap<String, String> getTotalProject(@Param("period_id") Long period_id,
-                                              @Param("rangeMonth") Iterable<String> rangeMonth,
-                                              @Param("categories") Iterable<String> categories,
-                                              @Param("average_ahead") Double average_ahead,
-                                              @Param("average_overdue") Double average_overdue);
+//    @Query(value="SELECT a.total_project as \"Total Project\", a.total_ontime as \"Total Ontime\", a.selesai_cepat as \"Selesai Cepat\", a.selesai_overdue as \"Selesai Overdue\", CAST(SUM(CASE WHEN a.total_project = 0 THEN 0 ELSE (((CAST(a.total_ontime AS FLOAT)/a.total_project)*1)+((CAST(a.selesai_cepat AS FLOAT)/a.total_project)*:average_ahead)+((CAST(a.selesai_overdue AS FLOAT)/a.total_project)*:average_overdue))*100 END) AS NUMERIC(4,1)) as \"KPI\" " +
+//            "FROM " +
+//                "(SELECT " +
+//                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as total_project, " +
+//                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) as total_ontime,  " +
+//                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS selesai_cepat, " +
+//                    "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS selesai_overdue " +
+//                        "FROM (SELECT DISTINCT ON (p1.id) p1.* " +
+//                            "FROM project p1 WHERE " +
+//                            "p1.period_id = 1 AND " +
+//                            "p1.month IN (:rangeMonth) " +
+//                            "ORDER BY p1.id, CASE LOWER(p1.month) " +
+//                                "WHEN 'Januari' THEN 1 " +
+//                                "WHEN 'Februari' THEN 2 " +
+//                                "WHEN 'Maret' THEN 3 " +
+//                                "WHEN 'April' THEN 4 " +
+//                                "WHEN 'Mei' THEN 5 " +
+//                                "WHEN 'Juni' THEN 6 " +
+//                                "WHEN 'Juli' THEN 7 " +
+//                                "WHEN 'Agustus' THEN 8 " +
+//                                "WHEN 'September' THEN 9 " +
+//                                "WHEN 'Oktober' THEN 10 " +
+//                                "WHEN 'November' THEN 11 " +
+//                                "WHEN 'Desember' THEN 12 " +
+//                                "END DESC" +
+//                        ") AS p " +
+//                    "WHERE p.period_id = :period_id AND " +
+//                    "LOWER(p.category) IN :categories AND " +
+//                    "LOWER(p.type) LIKE ANY (ARRAY['%in house%', 'join dev']) AND " +
+//                    "LOWER(p.type) NOT LIKE '%outsource%'" +
+//                ") as a " +
+//            "GROUP BY a.total_project, a.total_ontime, a.selesai_cepat, a.selesai_overdue", nativeQuery = true)
+//    LinkedMap<String, String> getTotalProject(@Param("period_id") Long period_id,
+//                                              @Param("rangeMonth") Iterable<String> rangeMonth,
+//                                              @Param("categories") Iterable<String> categories,
+//                                              @Param("average_ahead") Double average_ahead,
+//                                              @Param("average_overdue") Double average_overdue);
 
 }

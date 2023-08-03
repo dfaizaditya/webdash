@@ -35,6 +35,7 @@ public class Project extends DateAudit{
   @JoinColumn(name = "period_id")
   private Period period;
 
+  @Id
   @Column(name = "unit")
   private String unit;
 
@@ -54,42 +55,40 @@ public class Project extends DateAudit{
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
                   @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_unit", referencedColumnName = "unit"),
                   @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "user_sponsor_id"))
   private List<UserSponsor> userSponsor;
 
-//  @Column(name = "app_platform")
-//  private String appPlatform;
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(name = "project_app_platform",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
                   @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_unit", referencedColumnName = "unit"),
                   @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "app_platform_id"))
   private List<AppPlatform> appPlatform;
 
-//  @Column(name = "tech_platform")
-//  private String techPlatform;
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(name = "project_tech_platform",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
                   @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_unit", referencedColumnName = "unit"),
                   @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "tech_platform_id"))
   private List<TechPlatform> techPlatform;
 
-//  @Column(name = "pic")
-//  private String pic;
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(name = "project_pic",
           joinColumns = {
                   @JoinColumn(name = "project_id", referencedColumnName = "id"),
                   @JoinColumn(name = "project_month", referencedColumnName = "month"),
+                  @JoinColumn(name = "project_unit", referencedColumnName = "unit"),
                   @JoinColumn(name = "project_period_id", referencedColumnName = "period_id")
           },
           inverseJoinColumns = @JoinColumn(name = "pic_id"))

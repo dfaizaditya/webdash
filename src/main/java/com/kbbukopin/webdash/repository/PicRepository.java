@@ -16,13 +16,6 @@ public interface PicRepository extends JpaRepository<Pic, Long> {
             "WHERE p.name = :name", nativeQuery = true)
     Pic getByName(@Param("name") String name);
 
-    @Query(value = "SELECT EXISTS(SELECT FROM project_pic pp " +
-            "WHERE pp.pic_id = :pic_id " +
-            "AND((pp.project_id != :project_id) OR (pp.project_id = :project_id AND pp.project_month != :project_month)))", nativeQuery = true)
-    Boolean existProjectsByPicIdExceptItself(@Param("project_id") Long project_id,
-                                             @Param("project_month") String project_month,
-                                             @Param("pic_id") Long pic_id);
-
     @Modifying
     @Query(value = "DELETE FROM pic p WHERE id NOT IN " +
             "(SELECT pp.pic_id FROM project_pic pp)", nativeQuery = true)
