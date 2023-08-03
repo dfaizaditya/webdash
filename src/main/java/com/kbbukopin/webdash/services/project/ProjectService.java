@@ -38,6 +38,12 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectCategoryStat(Long year, String month);
 
+    ResponseEntity<Object> getProjectDocumentationStat(Long year, String month);
+
+    ResponseEntity<Object> getProjectRolloutStatusStat(Long year, String month);
+
+    ResponseEntity<Object> getProjectRolloutUnitStat(Long year, String month);
+
     ResponseEntity<Object> getProjectAppPlatformStat(Long year, String month);
 
     ResponseEntity<Object> getProjectTechPlatformStat(Long year, String month);
