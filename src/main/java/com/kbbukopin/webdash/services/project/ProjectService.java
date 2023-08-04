@@ -48,6 +48,8 @@ public interface ProjectService {
 
     ResponseEntity<Object> getProjectTechPlatformStat(Long year, String month);
 
+    ResponseEntity<Object> getDashboardCompletion(Long year, String month);
+
     ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String type, String category);
 
     ResponseEntity<Object> getEvidenceKpi(Long year, String month);

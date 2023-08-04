@@ -172,6 +172,11 @@ public class ProjectController {
 		return projectService.getProjectTechPlatformStat(year, month);
 	}
 
+	@GetMapping("/dashboard/completion")
+	public ResponseEntity<Object> getDashboardCompletion(@RequestParam(required = false) Long year,
+												 @RequestParam(required = false) String month) {
+		return projectService.getDashboardCompletion(year, month);
+	}
 
 	@GetMapping("/evidence")
 	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long year,
