@@ -1,6 +1,7 @@
 package com.kbbukopin.webdash.controllers;
 
 import com.kbbukopin.webdash.entity.DayOff;
+import com.kbbukopin.webdash.entity.Project;
 import com.kbbukopin.webdash.response.ResponseMessage;
 import com.kbbukopin.webdash.services.dayOff.DayOffService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,20 @@ public class DayOffController {
     @GetMapping
     public ResponseEntity<Object> getAllDayOff() {
         return dayOffService.getAllDayOff();
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<Object> createDayOff(@Valid @RequestBody DayOff newDayOff) {
+        return dayOffService.createDayOff(newDayOff);
+    }
+
+    @PutMapping("/{year}/{month}/{day}")
+    public ResponseEntity<Object> updateDayOff(@PathVariable(name = "year") int year,
+                                               @PathVariable(name = "month") int month,
+                                               @PathVariable(name = "day") int day,
+                                               @Valid @RequestBody DayOff newDayOff) {
+        LocalDate date = LocalDate.of(year, month, day);
+        return dayOffService.updateDayOff(date, newDayOff);
     }
 
     @DeleteMapping("/deleteMultiple")

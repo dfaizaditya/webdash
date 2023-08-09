@@ -9,12 +9,20 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface DayOffRepository extends JpaRepository<DayOff, Long> {
 
     @Query(value = "SELECT * FROM day_off " +
-            "ORDER BY updated_at DESC, created_at DESC", nativeQuery = true)
+            "ORDER BY date DESC, updated_at DESC, created_at DESC", nativeQuery = true)
     List<DayOff> getAllDayOff();
+
+    @Query(value = "SELECT do FROM DayOff do WHERE do.date = :date")
+    Optional<DayOff> getDayOffByPrimaryKey(@Param("date") LocalDate date);
+
+    @Query(value = "SELECT EXISTS(SELECT FROM day_off " +
+            "WHERE day_off.date = :date)", nativeQuery = true)
+    Boolean existsByPrimaryKey(@Param("date") LocalDate date);
 
     @Query(value = "SELECT * FROM day_off WHERE " +
             "EXTRACT(YEAR FROM day_off.date) = :year " +

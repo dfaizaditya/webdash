@@ -158,6 +158,31 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                     "WHEN 'November' THEN 11 " +
                     "WHEN 'Desember' THEN 12 " +
                     "END DESC" +
+                ") AS p " +
+            "WHERE period_id = :period_id " +
+            "ORDER BY p.updated_at DESC, p.created_at DESC", nativeQuery = true)
+    List<Project> exportProjects(@Param("period_id") Long period_id,
+                                 @Param("rangeMonth") Iterable<String> rangeMonth);
+
+    @Query(value = "SELECT p.* " +
+            "FROM (SELECT DISTINCT ON (p1.id, p1.unit, p1.info1) p1.* " +
+                "FROM project p1 WHERE " +
+                "p1.period_id = 1 AND " +
+                "p1.month IN (:rangeMonth) " +
+                "ORDER BY p1.id, p1.unit, p1.info1, CASE LOWER(p1.month) " +
+                    "WHEN 'Januari' THEN 1 " +
+                    "WHEN 'Februari' THEN 2 " +
+                    "WHEN 'Maret' THEN 3 " +
+                    "WHEN 'April' THEN 4 " +
+                    "WHEN 'Mei' THEN 5 " +
+                    "WHEN 'Juni' THEN 6 " +
+                    "WHEN 'Juli' THEN 7 " +
+                    "WHEN 'Agustus' THEN 8 " +
+                    "WHEN 'September' THEN 9 " +
+                    "WHEN 'Oktober' THEN 10 " +
+                    "WHEN 'November' THEN 11 " +
+                    "WHEN 'Desember' THEN 12 " +
+                    "END DESC" +
             ") AS p " +
             "WHERE period_id = :period_id AND " +
             "LOWER(info1) LIKE LOWER('%'||'Finished%'||:typeOfFinished||'%') AND " +

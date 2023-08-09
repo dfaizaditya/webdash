@@ -1046,8 +1046,31 @@ public class ProjectServiceImpl implements ProjectService {
     public ByteArrayInputStream load(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
+        month = monthParamChangerIfNull(month);
 
-        List<Project> projects = projectRepository.searchProjects( period.getId(), month, null, null, null, null, null);
+        List<String> rangeMonth = new ArrayList<>();
+        int index=-1;
+
+        for (int i = 0; i < daftarBulan.length; i++) {
+            if(i == 6) {
+                rangeMonth.clear();
+            }
+
+            rangeMonth.add(daftarBulan[i]);
+
+            if (daftarBulan[i].equals(month)) {
+                index = i;
+
+                // Keluar dari perulangan jika bulan ditemukan.
+                break;
+            }
+        }
+
+        if(index == -1) {
+            return null;
+        }
+
+        List<Project> projects = projectRepository.exportProjects( period.getId(), rangeMonth);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;
