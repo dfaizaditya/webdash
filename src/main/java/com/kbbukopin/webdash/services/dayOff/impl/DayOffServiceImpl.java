@@ -2,6 +2,7 @@ package com.kbbukopin.webdash.services.dayOff.impl;
 
 import com.kbbukopin.webdash.dto.ResponseHandler;
 import com.kbbukopin.webdash.entity.*;
+import com.kbbukopin.webdash.exeptions.ResourceNotFoundException;
 import com.kbbukopin.webdash.helper.ExcelHelper;
 import com.kbbukopin.webdash.repository.DayOffRepository;
 import com.kbbukopin.webdash.services.dayOff.DayOffService;
@@ -35,6 +36,37 @@ public class DayOffServiceImpl implements DayOffService {
         List<DayOff> dayOffList = dayOffRepository.getAllDayOff();
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, dayOffList);
+    }
+
+    @Override
+    public ResponseEntity<Object> createDayOff(DayOff newDayOff){
+        if(!dayOffRepository.existsByPrimaryKey(newDayOff.getDate())){
+            DayOff dayOff = DayOff.builder()
+                    .date(newDayOff.getDate())
+                    .description(newDayOff.getDescription())
+                    .build();
+
+            dayOffRepository.save(dayOff);
+
+            return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
+
+        } else {
+            return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> updateDayOff(LocalDate date, DayOff newDayOff){
+
+        DayOff dayOff = dayOffRepository.getDayOffByPrimaryKey(date)
+                .orElseThrow(() -> new ResourceNotFoundException("DayOff", "primary key", date));
+
+        dayOff.setDescription(newDayOff.getDescription());
+
+        DayOff updatedDayOff = dayOffRepository.save(dayOff);
+
+        return ResponseHandler.generateResponse("Success", HttpStatus.OK, updatedDayOff);
+
     }
 
     @Override
