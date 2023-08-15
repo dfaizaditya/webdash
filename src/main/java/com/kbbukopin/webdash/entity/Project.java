@@ -48,8 +48,6 @@ public class Project extends DateAudit{
   @Column(name = "category_project")
   private String categoryProject;
 
-//  @Column(name = "user_sponsor")
-//  private String userSponsor;
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(name = "project_user_sponsor",
           joinColumns = {

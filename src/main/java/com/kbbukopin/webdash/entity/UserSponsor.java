@@ -24,9 +24,5 @@ public class UserSponsor extends DateAudit{
 
     @Column(name = "name")
     private String name;
-
-    @ManyToMany(mappedBy = "userSponsor")
-    @JsonIgnore
-    private List<Project> project;
 }
 

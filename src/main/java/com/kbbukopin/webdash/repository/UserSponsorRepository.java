@@ -18,8 +18,12 @@ public interface UserSponsorRepository extends JpaRepository<UserSponsor, Long> 
     UserSponsor getByName(@Param("name") String name);
 
     @Modifying
-    @Query(value = "DELETE FROM user_sponsor us WHERE id NOT IN " +
-            "(SELECT pus.user_sponsor_id FROM project_user_sponsor pus)", nativeQuery = true)
+    @Query(value = "DELETE FROM user_sponsor us " +
+            "WHERE us.id NOT IN (" +
+                "SELECT pus.user_sponsor_id FROM project_user_sponsor pus " +
+                "UNION " +
+                "SELECT npus.user_sponsor_id FROM non_project_user_sponsor npus" +
+            ")", nativeQuery = true)
     void deleteUserSponsorNotExistOnPivot();
 
 }
