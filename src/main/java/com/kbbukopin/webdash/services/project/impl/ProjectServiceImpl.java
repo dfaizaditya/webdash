@@ -106,7 +106,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ResponseEntity<Object> getProjectByPrimaryKey(Long id, String month, String unit, Long year) {
-        Period period = getPeriodByYear(year);
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
@@ -154,7 +154,7 @@ public class ProjectServiceImpl implements ProjectService {
             projectRepository.save(project);
 
             return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
-//
+
         } else {
             return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
         }
@@ -164,7 +164,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     @Override
     public ResponseEntity<Object> updateProject(Long id, String month, String unit, Long year, @RequestBody Project newProject) {
-        Period period = getPeriodByYear(year);
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
 
@@ -200,7 +200,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     @Override
     public ResponseEntity<Object> deleteProject(Long id, String month, String unit, Long year) {
-        Period period = getPeriodByYear(year);
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
 
@@ -1070,7 +1070,7 @@ public class ProjectServiceImpl implements ProjectService {
             return null;
         }
 
-        List<Project> projects = projectRepository.exportProjects( period.getId(), rangeMonth);
+        List<Project> projects = projectRepository.exportProjects(period.getId(), rangeMonth);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;

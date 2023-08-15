@@ -173,6 +173,135 @@ public class ExcelHelper {
     }
   }
 
+  public static ByteArrayInputStream nonProjectsToExcel(List<NonProject> nonProjects) {
+
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+      Sheet sheet = workbook.createSheet(SHEET);
+
+      // Header
+      Row headerRow = sheet.createRow(0);
+
+      for (int col = 0; col < HEADERs.length; col++) {
+        Cell cell = headerRow.createCell(col);
+        cell.setCellValue(HEADERs[col]);
+
+        // Inisialisasi cellstyle
+        CellStyle cellStyle = workbook.createCellStyle();
+
+        // Mengatur cell agar wrap text
+        cellStyle.setWrapText(true);
+
+        // Mengatur cell agar posisi konten di tengah
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Mengatur background color hitam
+        cellStyle.setFillForegroundColor(IndexedColors.BLACK.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Mengatur font
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        font.setFontName("Arial");
+
+        cellStyle.setFont(font);
+
+        cell.setCellStyle(cellStyle);
+
+        headerRow.setHeightInPoints(42);
+        sheet.setColumnWidth(col, (int) (columnsWidth[col] * 256));
+      }
+
+      int rowIdx = 1;
+      for (NonProject nonProject : nonProjects) {
+        Row row = sheet.createRow(rowIdx++);
+
+        // melakukan join string pada user sponsor
+        List<String> namesUserSponsor = new ArrayList<>();
+        for (UserSponsor userSponsor : nonProject.getUserSponsor()) {
+          namesUserSponsor.add(userSponsor.getName());
+        }
+        String joinedNamesUserSponsor = String.join("\n", namesUserSponsor);
+
+        // melakukan join string pada app platform
+        List<String> namesAppPlatform = new ArrayList<>();
+        for (AppPlatform appPlatform : nonProject.getAppPlatform()) {
+          namesAppPlatform.add(appPlatform.getName());
+        }
+        String joinedNamesAppPlatform = String.join("\n", namesAppPlatform);
+
+        // melakukan join string pada tech platform
+        List<String> namesTechPlatform = new ArrayList<>();
+        for (TechPlatform techPlatform : nonProject.getTechPlatform()) {
+          namesTechPlatform.add(techPlatform.getName());
+        }
+        String joinedNamesTechPlatform = String.join("\n", namesTechPlatform);
+
+        // melakukan join string pada pic
+        List<String> namesPic = new ArrayList<>();
+        for (Pic pic : nonProject.getPic()) {
+          namesPic.add(pic.getName());
+        }
+        String joinedNamesPic = String.join("\n", namesPic);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+
+        row.createCell(0).setCellValue(nonProject.getNoTiketOrRfc() == 0 ? "" : ""+nonProject.getNoTiketOrRfc());
+        row.createCell(1).setCellValue(nonProject.getMonth());
+        row.createCell(2).setCellValue(nonProject.getUnit().equalsIgnoreCase("null") ? "" : nonProject.getUnit());
+        row.createCell(3).setCellValue(nonProject.getCategory().equalsIgnoreCase("null") ? "" : nonProject.getCategory());
+        row.createCell(4).setCellValue(nonProject.getCategoryProject().equalsIgnoreCase("null") ? "" : nonProject.getCategoryProject());
+        row.createCell(5).setCellValue(nonProject.getName().equalsIgnoreCase("null") ? "" : nonProject.getName());
+
+        Cell cellUserSponsor = row.createCell(6);
+        cellUserSponsor.setCellValue(joinedNamesUserSponsor.equalsIgnoreCase("null") ? "" : joinedNamesUserSponsor);
+
+        Cell cellAppPlatform = row.createCell(7);
+        cellAppPlatform.setCellValue(joinedNamesAppPlatform.equalsIgnoreCase("null") ? "" : joinedNamesAppPlatform);
+
+        Cell cellTechPlatform = row.createCell(8);
+        cellTechPlatform.setCellValue(joinedNamesTechPlatform.equalsIgnoreCase("null") ? "" : joinedNamesTechPlatform);
+
+        Cell cellPic = row.createCell(9);
+        cellPic.setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
+
+        row.createCell(10).setCellValue(nonProject.getStartDate() == null ? "" : nonProject.getStartDate().format(formatter));
+        row.createCell(11).setCellValue(nonProject.getDueDate() == null ? "" : nonProject.getDueDate().format(formatter));
+        row.createCell(12).setCellValue(nonProject.getFinishedDate() == null ? "" : nonProject.getFinishedDate().format(formatter));
+        row.createCell(13).setCellValue(nonProject.getType().equalsIgnoreCase("null") ? "" : nonProject.getType());
+        row.createCell(14).setCellValue(nonProject.getProgress() == null ? "" : nonProject.getProgress().doubleValue()*100+"%");
+        row.createCell(15).setCellValue(nonProject.getStatus().equalsIgnoreCase("null") ? "" : nonProject.getStatus());
+        row.createCell(16).setCellValue(nonProject.getInfo1().equalsIgnoreCase("null") ? "" : nonProject.getInfo1());
+        row.createCell(17).setCellValue(nonProject.getChangeType().equalsIgnoreCase("null") ? "" : nonProject.getChangeType());
+        row.createCell(18).setCellValue(nonProject.getRfc().equalsIgnoreCase("null") ? "" : nonProject.getRfc());
+        row.createCell(19).setCellValue(nonProject.getDocumentation().equalsIgnoreCase("null") ? "" : nonProject.getDocumentation());
+
+        Cell cellInfo2 = row.createCell(20);
+        cellInfo2.setCellValue(nonProject.getInfo2().equalsIgnoreCase("null") ? "" : nonProject.getInfo2());
+
+        // Inisialisasi cellstyle
+        CellStyle cellStyle = workbook.createCellStyle();
+
+        // Mengatur cell agar wrap text
+        cellStyle.setWrapText(true);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        cellInfo2.setCellStyle(cellStyle);
+        cellUserSponsor.setCellStyle(cellStyle);
+        cellAppPlatform.setCellStyle(cellStyle);
+        cellTechPlatform.setCellStyle(cellStyle);
+        cellPic.setCellStyle(cellStyle);
+
+      }
+
+      workbook.write(out);
+      return new ByteArrayInputStream(out.toByteArray());
+    } catch (IOException e) {
+      throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
+    }
+  }
+
   public static String getCellValueAsString(Cell cell) {
     if (cell == null) {
         return null;

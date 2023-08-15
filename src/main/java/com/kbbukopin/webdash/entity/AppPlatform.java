@@ -25,7 +25,4 @@ public class AppPlatform extends DateAudit{
     @Column(name = "name")
     private String name;
 
-    @ManyToMany(mappedBy = "appPlatform")
-    @JsonIgnore
-    private List<Project> project;
 }
