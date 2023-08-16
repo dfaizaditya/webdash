@@ -121,6 +121,19 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                     "GROUP BY t.name ORDER BY project_count", nativeQuery = true)
     List<Object[]> getColumnTechPlatformList(@Param("period_id") Long period_id, @Param("month") String month);
 
+    @Query(value = "SELECT unit, " +
+                        "       COUNT(*) AS count, " +
+                        "       (SELECT COUNT(*) FROM Project sub_p WHERE sub_p.unit = p.unit AND " +
+                        "                                           (:month is null OR sub_p.month LIKE '%'||:month||'%')) AS total "
+                        +
+                        "FROM Project p " +
+                        "WHERE p.period_id = :period_id AND " +
+                        "      (:month is null OR p.month LIKE '%'||:month||'%') AND " +
+                        "      p.progress = 1 " +
+                        "GROUP BY p.unit", nativeQuery = true)
+        List<Object[]> getDashboardCompletion(@Param("period_id") Long period_id,
+                        @Param("month") String month);
+                        
     @Query(value = "SELECT p.* FROM Project p WHERE " +
             "(:period_id IS NULL OR p.period_id = :period_id) AND " +
             "(:month IS NULL OR p.month LIKE '%'||:month||'%') AND " +

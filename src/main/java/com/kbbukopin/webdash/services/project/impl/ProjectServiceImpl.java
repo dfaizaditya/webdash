@@ -528,6 +528,45 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getDashboardCompletion(Long year, String month) {
+        Period period = this.getPeriodByYear(year);
+
+        List<Object[]> results = projectRepository.getDashboardCompletion(period.getId(), month);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        // Create a map to keep track of units and their corresponding results
+        Map<String, Object[]> resultMap = new HashMap<>();
+        for (Object[] result : results) {
+            String unitName = (String) result[0];
+            resultMap.put(unitName, result);
+        }
+
+        // Iterate over the UnitType enum
+        for (UnitType unitType : UnitType.values()) {
+            String unitName = unitType.getName();
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", unitName);
+
+            // If the unit is present in the query result, extract value and total from the
+            // result
+            if (resultMap.containsKey(unitName)) {
+                Object[] result = resultMap.get(unitName);
+                json.put("value", result[1]);
+                json.put("total", result[2]);
+            } else {
+                // If the unit is not present in the query result, set value and total to 0
+                json.put("value", 0);
+                json.put("total", 0);
+            }
+
+            jsonList.add(json);
+        }
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
+    }
+    
+
+    @Override
     public ResponseEntity<Object> getEvidenceKpi(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
