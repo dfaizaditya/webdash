@@ -132,19 +132,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                         "AND (:month is null or ptp.project_month like '%'||:month||'%') " +
                         "GROUP BY t.name ORDER BY project_count", nativeQuery = true)
         List<Object[]> getColumnTechPlatformList(@Param("period_id") Long period_id, @Param("month") String month);
-
-    @Query(value = "SELECT unit, " +
-                        "       COUNT(*) AS count, " +
-                        "       (SELECT COUNT(*) FROM Project sub_p WHERE sub_p.unit = p.unit AND " +
-                        "                                           (:month is null OR sub_p.month LIKE '%'||:month||'%')) AS total "
-                        +
-                        "FROM Project p " +
-                        "WHERE p.period_id = :period_id AND " +
-                        "      (:month is null OR p.month LIKE '%'||:month||'%') AND " +
-                        "      p.progress = 1 " +
-                        "GROUP BY p.unit", nativeQuery = true)
-        List<Object[]> getDashboardCompletion(@Param("period_id") Long period_id,
-                        @Param("month") String month);
                         
     @Query(value = "SELECT p.* FROM Project p WHERE " +
             "(:period_id IS NULL OR p.period_id = :period_id) AND " +
@@ -218,43 +205,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             @Param("period_id") Long period_id,
             @Param("rangeMonth") Iterable<String> rangeMonth,
             @Param("typeOfFinished") String typeOfFinished);
-
-        @Query(value = "SELECT " +
-                        "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%overdue%' THEN 1 ELSE 0 END), 0) AS \"Overdue\", "
-                        +
-                        "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%on time%' THEN 1 ELSE 0 END), 0) AS \"On Time\", "
-                        +
-                        "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%ahead%' THEN 1 ELSE 0 END), 0) AS \"Ahead\", "
-                        +
-                        "COALESCE(SUM(CASE WHEN LOWER(p.info1) LIKE 'finished%' AND LOWER(p.info1) NOT LIKE 'finished%N/A%' THEN 1 ELSE 0 END), 0) as \"Total\" "
-                        +
-                        "FROM (SELECT DISTINCT ON (p1.id, p1.unit, p1.info1) p1.* " +
-                        "FROM project p1 WHERE " +
-                        "p1.period_id = 1 AND " +
-                        "p1.month IN (:rangeMonth) " +
-                        "ORDER BY p1.id, p1.unit, p1.info1, CASE LOWER(p1.month) " +
-                        "WHEN 'Januari' THEN 1 " +
-                        "WHEN 'Februari' THEN 2 " +
-                        "WHEN 'Maret' THEN 3 " +
-                        "WHEN 'April' THEN 4 " +
-                        "WHEN 'Mei' THEN 5 " +
-                        "WHEN 'Juni' THEN 6 " +
-                        "WHEN 'Juli' THEN 7 " +
-                        "WHEN 'Agustus' THEN 8 " +
-                        "WHEN 'September' THEN 9 " +
-                        "WHEN 'Oktober' THEN 10 " +
-                        "WHEN 'November' THEN 11 " +
-                        "WHEN 'Desember' THEN 12 " +
-                        "END DESC" +
-                        ") AS p " +
-                        "WHERE type LIKE '%'||CASE WHEN :type = 'Insiden' THEN '%' ELSE :type END||'%' AND " +
-                        "category = :category AND " +
-                        "period_id = :period_id AND " +
-                        "type NOT LIKE '%Outsource'", nativeQuery = true)
-        LinkedMap<String, String> getCountProject(@Param("period_id") Long period_id,
-                        @Param("rangeMonth") Iterable<String> rangeMonth,
-                        @Param("category") String category,
-                        @Param("type") String type);
 
 
     @Query(value="SELECT " +
