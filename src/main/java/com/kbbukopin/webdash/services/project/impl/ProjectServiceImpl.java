@@ -108,16 +108,19 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> getProjectByPrimaryKey(Long id, String month, String unit, Long year) {
         Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
+                        id + "\n" + month + "\n" + unit + "\n" + period.getId()));
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, project);
     }
 
     @Override
-    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit, String type, String category) {
+    public ResponseEntity<Object> getProjectsByFilter(Long year, String month, String name, String info1, String unit,
+            String type, String category) {
 
         Period period = this.getPeriodByYear(year);
 
-        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, info1, unit, type, category);
+        List<Project> projects = projectRepository.searchProjects(period.getId(), month, name, info1, unit, type,
+                category);
 
         return ResponseHandler.generateResponse("Success", HttpStatus.OK, projects);
     }
@@ -125,7 +128,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ResponseEntity<Object> createProject(@RequestBody Project newProject) {
 
-        if(!projectRepository.existsByPrimaryKey(newProject.getId(), monthWordFixer(newProject.getMonth()), newProject.getUnit(), newProject.getPeriod().getId())){
+        if (!projectRepository.existsByPrimaryKey(newProject.getId(), monthWordFixer(newProject.getMonth()),
+                newProject.getUnit(), newProject.getPeriod().getId())) {
             Project project = Project.builder()
                     .id(newProject.getId())
                     .month(monthWordFixer(newProject.getMonth()))
@@ -163,10 +167,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
+
     public ResponseEntity<Object> updateProject(Long id, String month, String unit, Long year, @RequestBody Project newProject) {
         Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
+                        id + "\n" + month + "\n" + unit + "\n" + period.getId()));
 
         project.setCategory(newProject.getCategory());
         project.setCategoryProject(newProject.getCategoryProject());
@@ -202,7 +208,8 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> deleteProject(Long id, String month, String unit, Long year) {
         Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key", id+"\n"+month+"\n"+unit+"\n"+ period.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
+                        id + "\n" + month + "\n" + unit + "\n" + period.getId()));
 
         projectRepository.deleteByPrimaryKey(id, month, unit, period.getId());
         userSponsorRepository.deleteUserSponsorNotExistOnPivot();
@@ -215,7 +222,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months, List<String> units, List<Long> projectPeriodIds){
+    public ResponseEntity<Object> deleteMultipleProjects(List<Long> ids, List<String> months, List<String> units,
+            List<Long> projectPeriodIds) {
 
         projectRepository.deleteProjectEntries(ids, months, units, projectPeriodIds);
         userSponsorRepository.deleteUserSponsorNotExistOnPivot();
@@ -230,7 +238,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ResponseEntity<Object> getProjectStat(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
-//        month = monthParamChangerIfNull(month);
+        // month = monthParamChangerIfNull(month);
 
         List<String> clType = projectRepository.getColumnTypeList(period.getId(), month);
         List<String> clComplete = projectRepository.getColumnCompleteList(period.getId(), month);
@@ -269,26 +277,28 @@ public class ProjectServiceImpl implements ProjectService {
             listOfUnit.add(myjson);
         });
 
-
-//        for (var entry : mapCount(clType).entrySet()) {
-//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
-//            Object myjson = gson.fromJson(inputString, Object.class);
-//            listOfType.add(myjson);
-//        }
-//
-//        for (var entry : mapCount(clComplete).entrySet()) {
-//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
-//            Object myjson = gson.fromJson(inputString, Object.class);
-//
-//            listOfComplete.add(myjson);
-//        }
-//
-//        for (var entry : mapCount(clUnit).entrySet()) {
-//            JsonObject inputString = createJson(entry.getKey(), entry.getKey(), entry.getValue().doubleValue());
-//            Object myjson = gson.fromJson(inputString, Object.class);
-//
-//            listOfUnit.add(myjson);
-//        }
+        // for (var entry : mapCount(clType).entrySet()) {
+        // JsonObject inputString = createJson(entry.getKey(), entry.getKey(),
+        // entry.getValue().doubleValue());
+        // Object myjson = gson.fromJson(inputString, Object.class);
+        // listOfType.add(myjson);
+        // }
+        //
+        // for (var entry : mapCount(clComplete).entrySet()) {
+        // JsonObject inputString = createJson(entry.getKey(), entry.getKey(),
+        // entry.getValue().doubleValue());
+        // Object myjson = gson.fromJson(inputString, Object.class);
+        //
+        // listOfComplete.add(myjson);
+        // }
+        //
+        // for (var entry : mapCount(clUnit).entrySet()) {
+        // JsonObject inputString = createJson(entry.getKey(), entry.getKey(),
+        // entry.getValue().doubleValue());
+        // Object myjson = gson.fromJson(inputString, Object.class);
+        //
+        // listOfUnit.add(myjson);
+        // }
 
         return StatsHandler.generateResponse("Success", HttpStatus.OK, clType.size(), listOfType, listOfComplete,
                 listOfUnit);
@@ -348,7 +358,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clComplete = projectRepository.getColumnCompleteList(period.getId(), month);
         List<Object> listOfComplete = new ArrayList<>();
         Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
-  
+
         entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
 
         entryStreamOfComplete.forEach(entry -> {
@@ -368,7 +378,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clComplete = projectRepository.getColumnUnitList(period.getId(), month);
         List<Object> listOfComplete = new ArrayList<>();
         Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
-  
+
         entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
 
         entryStreamOfComplete.forEach(entry -> {
@@ -388,7 +398,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clComplete = projectRepository.getColumnTypeList(period.getId(), month);
         List<Object> listOfComplete = new ArrayList<>();
         Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
-  
+
         entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
 
         entryStreamOfComplete.forEach(entry -> {
@@ -408,7 +418,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clComplete = projectRepository.getColumnCategoryList(period.getId(), month);
         List<Object> listOfComplete = new ArrayList<>();
         Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
-  
+
         entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
 
         entryStreamOfComplete.forEach(entry -> {
@@ -428,7 +438,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<String> clComplete = projectRepository.getColumnDocumentationList(period.getId(), month);
         List<Object> listOfComplete = new ArrayList<>();
         Stream<Map.Entry<String, Long>> entryStreamOfComplete = mapCount(clComplete).entrySet().stream();
-  
+
         entryStreamOfComplete = entryStreamOfComplete.sorted(Map.Entry.comparingByValue());
 
         entryStreamOfComplete.forEach(entry -> {
@@ -475,6 +485,44 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ResponseEntity<Object> getDashboardCompletion(Long year, String month) {
+        Period period = this.getPeriodByYear(year);
+
+        List<Object[]> results = projectRepository.getDashboardCompletion(period.getId(), month);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        // Create a map to keep track of units and their corresponding results
+        Map<String, Object[]> resultMap = new HashMap<>();
+        for (Object[] result : results) {
+            String unitName = (String) result[0];
+            resultMap.put(unitName, result);
+        }
+
+        // Iterate over the UnitType enum
+        for (UnitType unitType : UnitType.values()) {
+            String unitName = unitType.getName();
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", unitName);
+
+            // If the unit is present in the query result, extract value and total from the
+            // result
+            if (resultMap.containsKey(unitName)) {
+                Object[] result = resultMap.get(unitName);
+                json.put("value", result[1]);
+                json.put("total", result[2]);
+            } else {
+                // If the unit is not present in the query result, set value and total to 0
+                json.put("value", 0);
+                json.put("total", 0);
+            }
+
+            jsonList.add(json);
+        }
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
+    }
+
+    @Override
     public ResponseEntity<Object> getProjectAppPlatformStat(Long year, String month) {
         Period period = this.getPeriodByYear(year);
 
@@ -490,7 +538,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
     }
-    
+
     @Override
     public ResponseEntity<Object> getProjectTechPlatformStat(Long year, String month) {
         Period period = this.getPeriodByYear(year);
@@ -573,10 +621,10 @@ public class ProjectServiceImpl implements ProjectService {
         month = monthParamChangerIfNull(month);
 
         List<String> rangeMonth = new ArrayList<>();
-        int index=-1;
+        int index = -1;
 
         for (int i = 0; i < daftarBulan.length; i++) {
-            if(i == 6) {
+            if (i == 6) {
                 rangeMonth.clear();
             }
 
@@ -590,7 +638,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
-        if(index == -1) {
+        if (index == -1) {
             return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
         }
 
@@ -605,42 +653,44 @@ public class ProjectServiceImpl implements ProjectService {
         System.out.println("----------------------");
         System.out.println("Ahead");
         System.out.println("----------------------");
-        for(Project project : projectsAhead){
-            if(project.getStartDate() != null &&
-                project.getDueDate() != null &&
-                project.getFinishedDate() != null) {
+        for (Project project : projectsAhead) {
+            if (project.getStartDate() != null &&
+                    project.getDueDate() != null &&
+                    project.getFinishedDate() != null) {
 
                 projectAheadMandaysCalculated.add(
                         calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
-                                calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff)
-                );
+                                calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
 
                 System.out.println(project.getStartDate());
                 System.out.println(project.getDueDate());
                 System.out.println(project.getFinishedDate());
-                System.out.println("scheduled mandays Ahead: "+calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
-                System.out.println("actualed mandays Ahead: "+calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+                System.out.println("scheduled mandays Ahead: "
+                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+                System.out.println("actualed mandays Ahead: "
+                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
             }
         }
 
         System.out.println("----------------------");
         System.out.println("Overdue");
         System.out.println("----------------------");
-        for(Project project : projectsOverdue) {
+        for (Project project : projectsOverdue) {
             if (project.getStartDate() != null &&
-                project.getDueDate() != null &&
-                project.getFinishedDate() != null) {
+                    project.getDueDate() != null &&
+                    project.getFinishedDate() != null) {
 
                 projectOverdueMandaysCalculated.add(
                         calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
-                        calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff)
-                );
+                                calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
 
                 System.out.println(project.getStartDate());
                 System.out.println(project.getDueDate());
                 System.out.println(project.getFinishedDate());
-                System.out.println("scheduled mandays Overdue: " + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
-                System.out.println("actualed mandays Overdue: " + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+                System.out.println("scheduled mandays Overdue: "
+                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+                System.out.println("actualed mandays Overdue: "
+                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
             }
         }
 
@@ -653,18 +703,16 @@ public class ProjectServiceImpl implements ProjectService {
         System.out.println("+++++++++++++++++++++");
         System.out.println(projectOverdueMandaysCalculated);
 
-        Double averageAhead = projectAheadMandaysCalculated.isEmpty() ?
-                0 :
-                Math.round(calculateAverage(projectAheadMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
+        Double averageAhead = projectAheadMandaysCalculated.isEmpty() ? 0
+                : Math.round(calculateAverage(projectAheadMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
 
-        Double averageOverdue = projectOverdueMandaysCalculated.isEmpty() ?
-                0 :
-                Math.round(calculateAverage(projectOverdueMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
+        Double averageOverdue = projectOverdueMandaysCalculated.isEmpty() ? 0
+                : Math.round(calculateAverage(projectOverdueMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
 
-        System.out.println("average ahead : "+averageAhead);
-        System.out.println("average overdue : "+averageOverdue);
+        System.out.println("average ahead : " + averageAhead);
+        System.out.println("average overdue : " + averageOverdue);
 
-        String[] types = {"In House", "Insiden", "Join Dev"};
+        String[] types = { "In House", "Insiden", "Join Dev" };
         LinkedMap<String, String> category = new LinkedMap<>();
 
         for (String type : types) {
@@ -683,25 +731,31 @@ public class ProjectServiceImpl implements ProjectService {
         kpi.put("KPI", 0.0);
 
         for (String type : types) {
-            LinkedMap<String, String> tempCountedProject = projectRepository.getCountProject(period.getId(), rangeMonth, category.get(type), type);
-            kpi.put("Selesai Cepat", kpi.get("Selesai Cepat") + Integer.parseInt(String.valueOf(tempCountedProject.get("Ahead"))));
-            kpi.put("Total Ontime", kpi.get("Total Ontime") + Integer.parseInt(String.valueOf(tempCountedProject.get("On Time"))));
-            kpi.put("Selesai Overdue", kpi.get("Selesai Overdue") + Integer.parseInt(String.valueOf(tempCountedProject.get("Overdue"))));
-            kpi.put("Total Project", kpi.get("Total Project") + Integer.parseInt(String.valueOf(tempCountedProject.get("Total"))));
+            LinkedMap<String, String> tempCountedProject = projectRepository.getCountProject(period.getId(), rangeMonth,
+                    category.get(type), type);
+            kpi.put("Selesai Cepat",
+                    kpi.get("Selesai Cepat") + Integer.parseInt(String.valueOf(tempCountedProject.get("Ahead"))));
+            kpi.put("Total Ontime",
+                    kpi.get("Total Ontime") + Integer.parseInt(String.valueOf(tempCountedProject.get("On Time"))));
+            kpi.put("Selesai Overdue",
+                    kpi.get("Selesai Overdue") + Integer.parseInt(String.valueOf(tempCountedProject.get("Overdue"))));
+            kpi.put("Total Project",
+                    kpi.get("Total Project") + Integer.parseInt(String.valueOf(tempCountedProject.get("Total"))));
 
             KpiHandler.addDataResponse(type, tempCountedProject);
         }
 
         double convertCalcToDouble = 1.0;
         kpi.put("KPI",
-            (double) Math.round(
-                (
-                    (kpi.get("Total Ontime")*convertCalcToDouble / kpi.get("Total Project")) +
-                    (kpi.get("Selesai Cepat")*convertCalcToDouble*averageAhead / kpi.get("Total Project")) -
-                    (kpi.get("Selesai Overdue")*convertCalcToDouble*averageOverdue / kpi.get("Total Project"))
-                )*100*10.0
-            )/10.0
-        );
+                (double) Math.round(
+                        ((kpi.get("Total Ontime") * convertCalcToDouble / kpi.get("Total Project")) +
+                                (kpi.get("Selesai Cepat") * convertCalcToDouble * averageAhead
+                                        / kpi.get("Total Project"))
+                                -
+                                (kpi.get("Selesai Overdue") * convertCalcToDouble * averageOverdue
+                                        / kpi.get("Total Project")))
+                                * 100 * 10.0)
+                        / 10.0);
 
         System.out.println(kpi);
         System.out.println("=======================================");
@@ -717,7 +771,7 @@ public class ProjectServiceImpl implements ProjectService {
         LocalDate tempDate = startDate;
 
         List<LocalDate> dayOffs = new ArrayList<>();
-        for(DayOff dayOff : listDayOff){
+        for (DayOff dayOff : listDayOff) {
             dayOffs.add(dayOff.getDate());
         }
 
@@ -729,7 +783,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
             tempDate = tempDate.plusDays(1);
         }
-        if(!dayOffs.contains(tempDate)) {
+        if (!dayOffs.contains(tempDate)) {
             rangeDays++;
         }
         return rangeDays;
@@ -756,7 +810,7 @@ public class ProjectServiceImpl implements ProjectService {
                     XSSFWorkbook workbook = new XSSFWorkbook(multipartFile.getInputStream());
                     XSSFSheet sheet = workbook.getSheetAt(0);
 
-//                    System.out.print(getNumberOfNonEmptyCells(sheet, 0));
+                    // System.out.print(getNumberOfNonEmptyCells(sheet, 0));
                     // looping----------------------------------------------------------------
                     for (int rowIndex = 0; rowIndex < getNumberOfNonEmptyCells(sheet, 0) - 1; rowIndex++) {
 
@@ -774,19 +828,19 @@ public class ProjectServiceImpl implements ProjectService {
                         String techPlatform = String.valueOf(row.getCell(8));
                         String pic = String.valueOf(row.getCell(9));
 
-                        //parse data to localDate
+                        // parse data to localDate
                         LocalDate startDate = ExcelHelper.parseLocalDate(row.getCell(10));
                         LocalDate dueDate = ExcelHelper.parseLocalDate(row.getCell(11));
                         LocalDate finishedDate = ExcelHelper.parseLocalDate(row.getCell(12));
 
                         String type = String.valueOf(row.getCell(13));
 
-                        //handling data progress
+                        // handling data progress
                         String tempProgress = String.valueOf(row.getCell(14));
                         BigDecimal progress = null;
-                        if(tempProgress.matches("[[0-9.%]+]+")) {
-                            if(!(tempProgress.equalsIgnoreCase(".")) ||
-                                    !(tempProgress.equalsIgnoreCase("%"))){
+                        if (tempProgress.matches("[[0-9.%]+]+")) {
+                            if (!(tempProgress.equalsIgnoreCase(".")) ||
+                                    !(tempProgress.equalsIgnoreCase("%"))) {
                                 progress = new BigDecimal(tempProgress);
                             }
                         }
@@ -804,7 +858,7 @@ public class ProjectServiceImpl implements ProjectService {
                             nameUserSponsor = nameUserSponsor.trim();
 
                             // melakukan pengecekan di user sponsor sudah terdaftar atau belum
-                            if(!userSponsorRepository.existsByName(nameUserSponsor)){
+                            if (!userSponsorRepository.existsByName(nameUserSponsor)) {
                                 // jika belum terdaftar maka akan create user sponsor
                                 UserSponsor tempUserSponsor = new UserSponsor();
                                 tempUserSponsor.setName(nameUserSponsor);
@@ -827,7 +881,7 @@ public class ProjectServiceImpl implements ProjectService {
                             nameAppPlatform = nameAppPlatform.trim();
 
                             // melakukan pengecekan di user sponsor sudah terdaftar atau belum
-                            if(!appPlatformRepository.existsByName(nameAppPlatform)){
+                            if (!appPlatformRepository.existsByName(nameAppPlatform)) {
                                 // jika belum terdaftar maka akan create user sponsor
                                 AppPlatform tempAppPlatform = new AppPlatform();
                                 tempAppPlatform.setName(nameAppPlatform);
@@ -850,7 +904,7 @@ public class ProjectServiceImpl implements ProjectService {
                             nameTechPlatform = nameTechPlatform.trim();
 
                             // melakukan pengecekan di user sponsor sudah terdaftar atau belum
-                            if(!techPlatformRepository.existsByName(nameTechPlatform)){
+                            if (!techPlatformRepository.existsByName(nameTechPlatform)) {
                                 // jika belum terdaftar maka akan create user sponsor
                                 TechPlatform tempTechPlatform = new TechPlatform();
                                 tempTechPlatform.setName(nameTechPlatform);
@@ -873,7 +927,7 @@ public class ProjectServiceImpl implements ProjectService {
                             namePic = namePic.trim();
 
                             // melakukan pengecekan di user sponsor sudah terdaftar atau belum
-                            if(!picRepository.existsByName(namePic)){
+                            if (!picRepository.existsByName(namePic)) {
                                 // jika belum terdaftar maka akan create user sponsor
                                 Pic tempPic = new Pic();
                                 tempPic.setName(namePic);
@@ -914,20 +968,17 @@ public class ProjectServiceImpl implements ProjectService {
                                 .info2(info2)
                                 .build();
 
-                        if(isDataAccordanceToEnumValid(UnitType.class, unit) &&
-                            isDataAccordanceToEnumValid(CategoryType.class, category) &&
-                            isDataAccordanceToEnumValid(CategoryProjectType.class, categoryProject) &&
-                            isDataAccordanceToEnumValid(ProjectType.class, type) &&
-                            isDataAccordanceToEnumValid(Info1Type.class, info1) &&
-                            (
-                                category.equals("Proyek") ?
-                                isDataAccordanceToEnumValid(StatusProjectType.class, status) :
-                                true
-                            ) && (
-                                category.equals("Insiden") ?
-                                isDataAccordanceToEnumValid(StatusIncidentType.class, status) :
-                                true
-                            )){
+                        if (isDataAccordanceToEnumValid(UnitType.class, unit) &&
+                                isDataAccordanceToEnumValid(CategoryType.class, category) &&
+                                isDataAccordanceToEnumValid(CategoryProjectType.class, categoryProject) &&
+                                isDataAccordanceToEnumValid(ProjectType.class, type) &&
+                                isDataAccordanceToEnumValid(Info1Type.class, info1) &&
+                                (category.equals("Proyek")
+                                        ? isDataAccordanceToEnumValid(StatusProjectType.class, status)
+                                        : true)
+                                && (category.equals("Insiden")
+                                        ? isDataAccordanceToEnumValid(StatusIncidentType.class, status)
+                                        : true)) {
 
                             projects.add(project);
                         } else {
@@ -959,7 +1010,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private Period getPeriodByYear(Long year) {
-        if(year == null || year == 0) {
+        if (year == null || year == 0) {
 
             Date date = new Date();
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -969,9 +1020,9 @@ public class ProjectServiceImpl implements ProjectService {
             return periodServiceImpl.getPeriodByYear(currentYear);
         } else {
             Period period = new Period();
-            if(year != null){
+            if (year != null) {
                 period = periodServiceImpl.getPeriodByYear(year);
-                if(period == null) {
+                if (period == null) {
                     period.setId(0);
                 }
             }
@@ -980,22 +1031,22 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private String monthParamChangerIfNull(String month) {
-        if(month == null || month.equalsIgnoreCase("")) {
+        if (month == null || month.equalsIgnoreCase("")) {
 
             Date date = new Date();
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            return daftarBulan[localDate.getMonthValue()-1];
+            return daftarBulan[localDate.getMonthValue() - 1];
         } else {
             return month;
         }
     }
 
-    //fungsi untuk standarisasi nilai month
+    // fungsi untuk standarisasi nilai month
     private String monthWordFixer(String month) {
 
         month = month.toLowerCase();
-        LinkedHashMap<String,String> bulanPattern = new LinkedHashMap<>();
+        LinkedHashMap<String, String> bulanPattern = new LinkedHashMap<>();
 
         bulanPattern.put("Januari", "^(j[a-z]*a[a-z]*n[a-z]*)$");
         bulanPattern.put("Februari", "^(f[a-z]*b[a-z]*)$");
@@ -1017,7 +1068,7 @@ public class ProjectServiceImpl implements ProjectService {
         for (String key : keys) {
             Pattern pattern = Pattern.compile(bulanPattern.get(key));
             Matcher matcher = pattern.matcher(month);
-            if(matcher.matches()){
+            if (matcher.matches()) {
                 return key;
             }
         }

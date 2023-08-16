@@ -1,45 +1,83 @@
 package com.kbbukopin.webdash.security;
 
-//import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-//import org.springframework.http.HttpMethod;
-//import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import com.kbbukopin.webdash.security.jwt.AuthEntryPointJwt;
+import com.kbbukopin.webdash.security.jwt.AuthTokenFilter;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
 
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        auth
-//                .inMemoryAuthentication()
-//                .passwordEncoder(passwordEncoder)
-//                .withUser("user")
-//                .password(passwordEncoder.encode("password"))
-//                .roles("USER");
-//        System.out.println(passwordEncoder.encode("password"));
-//    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-//            .and()
-//            .authorizeRequests()
-//            .antMatchers(HttpMethod.POST, "/api/projects/**").authenticated()
-//            .antMatchers(HttpMethod.PUT, "/api/projects/**").authenticated()
-//            .antMatchers(HttpMethod.DELETE, "/api/projects/**").authenticated()
-//            .antMatchers(HttpMethod.GET, "/api/projects/**").authenticated()
-//            .anyRequest().permitAll()
-//            .and()
-//            .httpBasic();
-    }
-}
+            .cors().and()
+            .csrf().disable() // Disable CSRF for JWT-based authentication
+            .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedHandler)
+                .and()
+            .authorizeRequests()
+                .antMatchers("/auth/**").permitAll() // Allow /auth without authentication
+                .antMatchers("/api/**").authenticated() // Require authentication for /api
+                .anyRequest().authenticated();
 
+        http.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+
+    @Bean
+    AuthTokenFilter authTokenFilter() {
+        return new AuthTokenFilter();
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration authentication) throws Exception {
+        return authentication.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://localhost:5173");
+        config.setAllowCredentials(true);
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("PATCH");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
+}
