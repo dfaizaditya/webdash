@@ -17,7 +17,11 @@ public interface AppPlatformRepository extends JpaRepository<AppPlatform, Long> 
     AppPlatform getByName(@Param("name") String name);
 
     @Modifying
-    @Query(value = "DELETE FROM app_platform ap WHERE id NOT IN " +
-            "(SELECT pap.app_platform_id FROM project_app_platform pap)", nativeQuery = true)
+    @Query(value = "DELETE FROM app_platform ap " +
+            "WHERE ap.id NOT IN (" +
+                "SELECT pap.app_platform_id FROM project_app_platform pap " +
+                "UNION " +
+                "SELECT npap.app_platform_id FROM non_project_app_platform npap" +
+            ")", nativeQuery = true)
     void deleteAppPlatformNotExistOnPivot();
 }

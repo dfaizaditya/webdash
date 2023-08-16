@@ -17,7 +17,11 @@ public interface PicRepository extends JpaRepository<Pic, Long> {
     Pic getByName(@Param("name") String name);
 
     @Modifying
-    @Query(value = "DELETE FROM pic p WHERE id NOT IN " +
-            "(SELECT pp.pic_id FROM project_pic pp)", nativeQuery = true)
+    @Query(value = "DELETE FROM pic p " +
+            "WHERE p.id NOT IN (" +
+                "SELECT pp.pic_id FROM project_pic pp " +
+                "UNION " +
+                "SELECT npp.pic_id FROM non_project_pic npp" +
+            ")", nativeQuery = true)
     void deletePicNotExistOnPivot();
 }

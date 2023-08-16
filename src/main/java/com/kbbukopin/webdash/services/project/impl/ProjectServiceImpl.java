@@ -106,7 +106,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ResponseEntity<Object> getProjectByPrimaryKey(Long id, String month, String unit, Long year) {
-        Period period = getPeriodByYear(year);
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
                         id + "\n" + month + "\n" + unit + "\n" + period.getId()));
@@ -158,7 +158,7 @@ public class ProjectServiceImpl implements ProjectService {
             projectRepository.save(project);
 
             return ResponseHandler.generateResponse("Success", HttpStatus.OK, " ");
-            //
+
         } else {
             return ResponseHandler.generateResponse("Failed", HttpStatus.BAD_REQUEST, " ");
         }
@@ -167,9 +167,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ResponseEntity<Object> updateProject(Long id, String month, String unit, Long year,
-            @RequestBody Project newProject) {
-        Period period = getPeriodByYear(year);
+
+    public ResponseEntity<Object> updateProject(Long id, String month, String unit, Long year, @RequestBody Project newProject) {
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
                         id + "\n" + month + "\n" + unit + "\n" + period.getId()));
@@ -206,7 +206,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     @Override
     public ResponseEntity<Object> deleteProject(Long id, String month, String unit, Long year) {
-        Period period = getPeriodByYear(year);
+        Period period = this.getPeriodByYear(year);
         Project project = projectRepository.getProjectByPrimaryKey(id, month, unit, period.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "primary key",
                         id + "\n" + month + "\n" + unit + "\n" + period.getId()));
@@ -574,6 +574,45 @@ public class ProjectServiceImpl implements ProjectService {
         jsObj.addProperty("value", value);
         return jsObj;
     }
+
+    @Override
+    public ResponseEntity<Object> getDashboardCompletion(Long year, String month) {
+        Period period = this.getPeriodByYear(year);
+
+        List<Object[]> results = projectRepository.getDashboardCompletion(period.getId(), month);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        // Create a map to keep track of units and their corresponding results
+        Map<String, Object[]> resultMap = new HashMap<>();
+        for (Object[] result : results) {
+            String unitName = (String) result[0];
+            resultMap.put(unitName, result);
+        }
+
+        // Iterate over the UnitType enum
+        for (UnitType unitType : UnitType.values()) {
+            String unitName = unitType.getName();
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", unitName);
+
+            // If the unit is present in the query result, extract value and total from the
+            // result
+            if (resultMap.containsKey(unitName)) {
+                Object[] result = resultMap.get(unitName);
+                json.put("value", result[1]);
+                json.put("total", result[2]);
+            } else {
+                // If the unit is not present in the query result, set value and total to 0
+                json.put("value", 0);
+                json.put("total", 0);
+            }
+
+            jsonList.add(json);
+        }
+
+        return StatHandler.generateResponse("Success", HttpStatus.OK, jsonList.size(), jsonList);
+    }
+    
 
     @Override
     public ResponseEntity<Object> getEvidenceKpi(Long year, String month) {
@@ -1097,8 +1136,31 @@ public class ProjectServiceImpl implements ProjectService {
     public ByteArrayInputStream load(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
+        month = monthParamChangerIfNull(month);
 
-        List<Project> projects = projectRepository.searchProjects(period.getId(), month, null, null, null, null, null);
+        List<String> rangeMonth = new ArrayList<>();
+        int index=-1;
+
+        for (int i = 0; i < daftarBulan.length; i++) {
+            if(i == 6) {
+                rangeMonth.clear();
+            }
+
+            rangeMonth.add(daftarBulan[i]);
+
+            if (daftarBulan[i].equals(month)) {
+                index = i;
+
+                // Keluar dari perulangan jika bulan ditemukan.
+                break;
+            }
+        }
+
+        if(index == -1) {
+            return null;
+        }
+
+        List<Project> projects = projectRepository.exportProjects(period.getId(), rangeMonth);
 
         ByteArrayInputStream in = ExcelHelper.projectsToExcel(projects);
         return in;

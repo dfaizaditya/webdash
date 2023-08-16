@@ -62,7 +62,7 @@ public class ProjectController {
 		return projectService.getProjectByPrimaryKey(id, month, unit, year);
 	}
 	
-	@PutMapping("/{id}/{month}/{year}")
+	@PutMapping("/{id}/{month}/{unit}/{year}")
 	public ResponseEntity<Object> updateProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month,
 												@PathVariable(name = "unit") String unit,
@@ -76,7 +76,7 @@ public class ProjectController {
 		return projectService.createProject(project);
 	}
 
-	@DeleteMapping("/{id}/{month}/{year}")
+	@DeleteMapping("/{id}/{month}/{unit}/{year}")
 	public ResponseEntity<Object> deleteProject(@PathVariable(name = "id") Long id,
 												@PathVariable(name = "month") String month,
 												@PathVariable(name = "unit") String unit,
@@ -177,6 +177,7 @@ public class ProjectController {
 												 @RequestParam(required = false) String month) {
 		return projectService.getDashboardCompletion(year, month);
 	}
+
 
 	@GetMapping("/evidence")
 	public ResponseEntity<Object> getEvidenceKpi(@RequestParam(required = false) Long year,

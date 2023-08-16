@@ -25,7 +25,4 @@ public class Pic extends DateAudit{
     @Column(name = "name")
     private String name;
 
-    @ManyToMany(mappedBy = "pic")
-    @JsonIgnore
-    private List<Project> project;
 }
