@@ -3,6 +3,9 @@ package com.kbbukopin.webdash.entity;
 import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -22,6 +25,9 @@ public class User {
     private String password;
 
     private boolean enabled;
+
+    @OneToMany(mappedBy = "user")
+    private List<PinnedProject> pinnedProjects = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(

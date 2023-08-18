@@ -1,41 +1,52 @@
 package com.kbbukopin.webdash.security;
 
+import com.kbbukopin.webdash.security.jwt.AuthEntryPointJwt;
+import com.kbbukopin.webdash.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.kbbukopin.webdash.security.jwt.AuthEntryPointJwt;
-import com.kbbukopin.webdash.security.jwt.AuthTokenFilter;
-
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public AuthTokenFilter authTokenFilter() {
+        return new AuthTokenFilter();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         http
             .cors().and()
-            .csrf().disable() // Disable CSRF for JWT-based authentication
+            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // Disable CSRF for JWT-based authentication
+            .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Use stateless sessions
+            .and()
             .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler)
-                .and()
+            .and()
             .authorizeRequests()
                 .antMatchers("/auth/**").permitAll() // Allow /auth without authentication
                 .antMatchers("/api/**").authenticated() // Require authentication for /api
@@ -43,24 +54,6 @@ public class SecurityConfig {
 
         http.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-
-    @Bean
-    AuthTokenFilter authTokenFilter() {
-        return new AuthTokenFilter();
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration authentication) throws Exception {
-        return authentication.getAuthenticationManager();
     }
 
     @Bean
@@ -80,4 +73,9 @@ public class SecurityConfig {
         return new CorsFilter(source);
     }
 
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
 }
