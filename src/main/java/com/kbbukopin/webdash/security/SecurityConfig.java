@@ -2,6 +2,9 @@ package com.kbbukopin.webdash.security;
 
 import com.kbbukopin.webdash.security.jwt.AuthEntryPointJwt;
 import com.kbbukopin.webdash.security.jwt.AuthTokenFilter;
+
+import javax.annotation.security.PermitAll;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +51,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(unauthorizedHandler)
             .and()
             .authorizeRequests()
-                .antMatchers("/auth/**").permitAll() // Allow /auth without authentication
+                .antMatchers("/auth/**").permitAll()
+                .antMatchers("/api/projects/download").permitAll()
+                .antMatchers("/api/non_projects/download").permitAll() // Allow /auth without authentication
                 .antMatchers("/api/**").authenticated() // Require authentication for /api
                 .anyRequest().authenticated();
 
