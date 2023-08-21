@@ -65,7 +65,7 @@ public class DayOffController {
 
     }
 
-    @GetMapping("/download")
+    @GetMapping("/downloadTemplate")
     public ResponseEntity<Resource> getTemplateFile() {
 
         String filename = "Template Day Off.xlsx";
