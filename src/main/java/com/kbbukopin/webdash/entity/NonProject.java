@@ -26,9 +26,6 @@ public class NonProject extends DateAudit{
     @Column(name = "id")
     private long id;
 
-    @Column(name = "no_tiket_or_rfc")
-    private long noTiketOrRfc;
-
     @Column(name = "month")
     private String month;
 
@@ -45,33 +42,6 @@ public class NonProject extends DateAudit{
     @Column(name = "name")
     private String name;
 
-    @Column(name = "category_project")
-    private String categoryProject;
-
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "non_project_user_sponsor",
-            joinColumns = {
-                    @JoinColumn(name = "non_project_id", referencedColumnName = "id")
-            },
-            inverseJoinColumns = @JoinColumn(name = "user_sponsor_id"))
-    private List<UserSponsor> userSponsor;
-
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "non_project_app_platform",
-            joinColumns = {
-                    @JoinColumn(name = "non_project_id", referencedColumnName = "id")
-            },
-            inverseJoinColumns = @JoinColumn(name = "app_platform_id"))
-    private List<AppPlatform> appPlatform;
-
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "non_project_tech_platform",
-            joinColumns = {
-                    @JoinColumn(name = "project_id", referencedColumnName = "id")
-            },
-            inverseJoinColumns = @JoinColumn(name = "tech_platform_id"))
-    private List<TechPlatform> techPlatform;
-
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "non_project_pic",
             joinColumns = {
@@ -79,42 +49,6 @@ public class NonProject extends DateAudit{
             },
             inverseJoinColumns = @JoinColumn(name = "pic_id"))
     private List<Pic> pic;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
-    @Column(name = "due_date")
-    private LocalDate dueDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
-    @Column(name = "finished_date")
-    private LocalDate finishedDate;
-
-    @Column(name = "type")
-    private String type;
-
-    @Column(name = "progress")
-    private BigDecimal progress;
-
-    @Column(name = "status")
-    private String status;
-
-    @Column(name = "info1")
-    private String info1;
-
-    @Column(name = "change_type")
-    private String changeType;
-
-    @Column(name = "rfc")
-    private String rfc;
-
-    @Column(name = "documentation")
-    private String documentation;
-
-    @Column(name = "info2", columnDefinition="TEXT")
-    private String info2;
 
 }
 

@@ -53,7 +53,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/api/projects/download").permitAll()
-                .antMatchers("/api/non_projects/download").permitAll() // Allow /auth without authentication
+                .antMatchers("/api/non_projects/download").permitAll()
+                .antMatchers("/api/day_off/downloadTemplate").permitAll() // Allow /auth without authentication
                 .antMatchers("/api/**").authenticated() // Require authentication for /api
                 .anyRequest().authenticated();
 
