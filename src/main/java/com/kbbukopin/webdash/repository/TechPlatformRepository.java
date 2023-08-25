@@ -18,10 +18,6 @@ public interface TechPlatformRepository extends JpaRepository<TechPlatform, Long
 
     @Modifying
     @Query(value = "DELETE FROM tech_platform tp " +
-            "WHERE tp.id NOT IN (" +
-                "SELECT ptp.tech_platform_id FROM project_tech_platform ptp " +
-                "UNION " +
-                "SELECT nptp.tech_platform_id FROM non_project_tech_platform nptp" +
-            ")", nativeQuery = true)
+            "WHERE tp.id NOT IN (SELECT ptp.tech_platform_id FROM project_tech_platform ptp)", nativeQuery = true)
     void deleteTechPlatformNotExistOnPivot();
 }
