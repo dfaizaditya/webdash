@@ -540,6 +540,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ResponseEntity<Object> getDashboardCompletion(Long year, String month) {
         Period period = this.getPeriodByYear(year);
+        month = monthParamChangerIfNull(month);
 
         List<Object[]> results = projectRepository.getDashboardCompletion(period.getId(), month);
         List<Map<String, Object>> jsonList = new ArrayList<>();
@@ -612,9 +613,9 @@ public class ProjectServiceImpl implements ProjectService {
         List<Double> projectAheadMandaysCalculated = new ArrayList<>();
         List<Double> projectOverdueMandaysCalculated = new ArrayList<>();
 
-        System.out.println("----------------------");
-        System.out.println("Ahead");
-        System.out.println("----------------------");
+//        System.out.println("----------------------");
+//        System.out.println("Ahead");
+//        System.out.println("----------------------");
         for (Project project : projectsAhead) {
             if (project.getStartDate() != null &&
                     project.getDueDate() != null &&
@@ -624,19 +625,19 @@ public class ProjectServiceImpl implements ProjectService {
                         calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
                                 calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
 
-                System.out.println(project.getStartDate());
-                System.out.println(project.getDueDate());
-                System.out.println(project.getFinishedDate());
-                System.out.println("scheduled mandays Ahead: "
-                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
-                System.out.println("actualed mandays Ahead: "
-                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+//                System.out.println(project.getStartDate());
+//                System.out.println(project.getDueDate());
+//                System.out.println(project.getFinishedDate());
+//                System.out.println("scheduled mandays Ahead: "
+//                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+//                System.out.println("actualed mandays Ahead: "
+//                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
             }
         }
 
-        System.out.println("----------------------");
-        System.out.println("Overdue");
-        System.out.println("----------------------");
+//        System.out.println("----------------------");
+//        System.out.println("Overdue");
+//        System.out.println("----------------------");
         for (Project project : projectsOverdue) {
             if (project.getStartDate() != null &&
                     project.getDueDate() != null &&
@@ -646,24 +647,24 @@ public class ProjectServiceImpl implements ProjectService {
                         calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff) /
                                 calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
 
-                System.out.println(project.getStartDate());
-                System.out.println(project.getDueDate());
-                System.out.println(project.getFinishedDate());
-                System.out.println("scheduled mandays Overdue: "
-                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
-                System.out.println("actualed mandays Overdue: "
-                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
+//                System.out.println(project.getStartDate());
+//                System.out.println(project.getDueDate());
+//                System.out.println(project.getFinishedDate());
+//                System.out.println("scheduled mandays Overdue: "
+//                        + calculateMandays(project.getStartDate(), project.getDueDate(), listDayOff));
+//                System.out.println("actualed mandays Overdue: "
+//                        + calculateMandays(project.getStartDate(), project.getFinishedDate(), listDayOff));
             }
         }
 
-        System.out.println("+++++++++++++++++++++");
-        System.out.println("Calculating Ahead");
-        System.out.println("+++++++++++++++++++++");
-        System.out.println(projectAheadMandaysCalculated);
-        System.out.println("+++++++++++++++++++++");
-        System.out.println("Calculating Overdue");
-        System.out.println("+++++++++++++++++++++");
-        System.out.println(projectOverdueMandaysCalculated);
+//        System.out.println("+++++++++++++++++++++");
+//        System.out.println("Calculating Ahead");
+//        System.out.println("+++++++++++++++++++++");
+//        System.out.println(projectAheadMandaysCalculated);
+//        System.out.println("+++++++++++++++++++++");
+//        System.out.println("Calculating Overdue");
+//        System.out.println("+++++++++++++++++++++");
+//        System.out.println(projectOverdueMandaysCalculated);
 
         Double averageAhead = projectAheadMandaysCalculated.isEmpty() ? 0
                 : Math.round(calculateAverage(projectAheadMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
@@ -671,8 +672,8 @@ public class ProjectServiceImpl implements ProjectService {
         Double averageOverdue = projectOverdueMandaysCalculated.isEmpty() ? 0
                 : Math.round(calculateAverage(projectOverdueMandaysCalculated) * Math.pow(10, 1)) / Math.pow(10, 1);
 
-        System.out.println("average ahead : " + averageAhead);
-        System.out.println("average overdue : " + averageOverdue);
+//        System.out.println("average ahead : " + averageAhead);
+//        System.out.println("average overdue : " + averageOverdue);
 
         String[] types = { "In House", "Insiden", "Join Dev" };
         LinkedMap<String, String> category = new LinkedMap<>();
@@ -719,8 +720,8 @@ public class ProjectServiceImpl implements ProjectService {
                                 * 100 * 10.0)
                         / 10.0);
 
-        System.out.println(kpi);
-        System.out.println("=======================================");
+//        System.out.println(kpi);
+//        System.out.println("=======================================");
 
         KpiHandler.addDataResponse("Total", kpi);
 
@@ -1095,6 +1096,7 @@ public class ProjectServiceImpl implements ProjectService {
         return numOfNonEmptyCells;
     }
 
+    @Override
     public ByteArrayInputStream load(Long year, String month) {
 
         Period period = this.getPeriodByYear(year);
