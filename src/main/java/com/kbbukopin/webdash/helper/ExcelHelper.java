@@ -111,7 +111,7 @@ public class ExcelHelper {
         }
         String joinedNamesPic = String.join("\n", namesPic);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
 
         row.createCell(0).setCellValue(project.getId());
         row.createCell(1).setCellValue(project.getMonth());
@@ -136,11 +136,24 @@ public class ExcelHelper {
         Cell cellPic = row.createCell(9);
         cellPic.setCellValue(joinedNamesPic.equalsIgnoreCase("null") ? "" : joinedNamesPic);
 
-        row.createCell(10).setCellValue(project.getStartDate() == null ? "" : project.getStartDate().format(formatter));
-        row.createCell(11).setCellValue(project.getDueDate() == null ? "" : project.getDueDate().format(formatter));
-        row.createCell(12).setCellValue(project.getFinishedDate() == null ? "" : project.getFinishedDate().format(formatter));
+//        row.createCell(10).setCellValue(project.getStartDate() == null ? "" : project.getStartDate().format(formatter));
+//        row.createCell(11).setCellValue(project.getDueDate() == null ? "" : project.getDueDate().format(formatter));
+//        row.createCell(12).setCellValue(project.getFinishedDate() == null ? "" : project.getFinishedDate().format(formatter));
+
+        Cell cellStartDate = row.createCell(10);
+        cellStartDate.setCellValue(project.getStartDate());
+        Cell cellDueDate = row.createCell(11);
+        cellDueDate.setCellValue(project.getDueDate());
+        Cell cellFinishedDate = row.createCell(12);
+        cellFinishedDate.setCellValue(project.getFinishedDate());
+
         row.createCell(13).setCellValue(project.getType().equalsIgnoreCase("null") ? "" : project.getType());
-        row.createCell(14).setCellValue(project.getProgress().doubleValue()*100+"%");
+
+//        row.createCell(14).setCellValue(project.getProgress().doubleValue()*100+"%");
+
+        Cell cellProgress = row.createCell(14);
+        cellProgress.setCellValue(project.getProgress().doubleValue());
+
         row.createCell(15).setCellValue(project.getStatus().equalsIgnoreCase("null") ? "" : project.getStatus());
         row.createCell(16).setCellValue(project.getInfo1().equalsIgnoreCase("null") ? "" : project.getInfo1());
         row.createCell(17).setCellValue(project.getChangeType().equalsIgnoreCase("null") ? "" : project.getChangeType());
@@ -154,6 +167,14 @@ public class ExcelHelper {
         // Inisialisasi cellstyle
         CellStyle cellStyle = workbook.createCellStyle();
 
+        // Inisialisasi dateCellStyle
+        CellStyle dateCellStyle = workbook.createCellStyle();
+        dateCellStyle.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat("mm/dd/yy"));
+
+        // Inisialisasi percentageCellStyle
+        CellStyle percentageCellStyle = workbook.createCellStyle();
+        percentageCellStyle.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat("0.00%"));
+
         // Mengatur cell agar wrap text
         cellStyle.setWrapText(true);
         cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
@@ -163,6 +184,12 @@ public class ExcelHelper {
         cellAppPlatform.setCellStyle(cellStyle);
         cellTechPlatform.setCellStyle(cellStyle);
         cellPic.setCellStyle(cellStyle);
+
+        cellStartDate.setCellStyle(dateCellStyle);
+        cellDueDate.setCellStyle(dateCellStyle);
+        cellFinishedDate.setCellStyle(dateCellStyle);
+
+        cellProgress.setCellStyle(percentageCellStyle);
 
       }
 
